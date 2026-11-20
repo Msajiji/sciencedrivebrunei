@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ms" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCIENCE DRIVE: THE ULTIMATE QUEST – Year 7 Science Brunei (SPN21)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Orbitron & Fredoka -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #090d16;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .font-arcade {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Panel Kaca Arked Moden */
+        .arcade-panel {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 2px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), inset 0 0 24px rgba(56, 189, 248, 0.12);
+        }
+        /* Butang Arked 3D Taktil */
+        .btn-arcade {
+            position: relative;
+            transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-arcade:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5) !important;
+        }
+        .btn-green {
+            background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+            box-shadow: 0 6px 0 #14532d, 0 12px 24px rgba(34, 197, 94, 0.4);
+            border: 2px solid #86efac;
+        }
+        .btn-blue {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 0 #1e3a8a, 0 12px 24px rgba(59, 130, 246, 0.35);
+            border: 2px solid #93c5fd;
+        }
+        .btn-amber {
+            background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
+            box-shadow: 0 6px 0 #78350f, 0 12px 24px rgba(245, 158, 11, 0.35);
+            border: 2px solid #fde68a;
+        }
+        .btn-purple {
+            background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%);
+            box-shadow: 0 6px 0 #581c87, 0 12px 24px rgba(168, 85, 247, 0.35);
+            border: 2px solid #d8b4fe;
+        }
+        /* Grid Siber Latar Belakang */
+        .cyber-grid {
+            background-image: 
+                linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+            background-size: 44px 44px;
+        }
+        /* Animasi Pratonton Jalan & Kereta */
+        @keyframes roadScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 60px; }
+        }
+        .road-stripes-anim {
+            background-image: repeating-linear-gradient(
+                to bottom,
+                #facc15 0px,
+                #facc15 28px,
+                transparent 28px,
+                transparent 60px
+            );
+            animation: roadScroll 0.45s linear infinite;
+        }
+        @keyframes carHover {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-4px) rotate(-1.2deg); }
+            75% { transform: translateY(-2px) rotate(1.2deg); }
+        }
+        .car-float {
+            animation: carHover 2.8s ease-in-out infinite;
+        }
+        @keyframes coinSpin {
+            0%, 100% { transform: scaleX(1) translateY(0); }
+            50% { transform: scaleX(0.3) translateY(-6px); }
+        }
+        .coin-anim {
+            animation: coinSpin 1.6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="cyber-grid selection:bg-sky-400 selection:text-slate-950">
+
+    <!-- Cahaya Ambien Latar Belakang -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute -top-32 -left-24 w-96 h-96 bg-sky-500/20 rounded-full blur-[120px]"></div>
+        <div class="absolute top-1/3 -right-24 w-96 h-96 bg-purple-600/20 rounded-full blur-[130px]"></div>
+        <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-emerald-500/15 rounded-full blur-[130px]"></div>
+    </div>
+
+    <!-- ==================== BAR NAVIGASI ATAS ==================== -->
+    <header class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-lg border-b border-sky-500/25">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+            <!-- Logo Jenama -->
+            <a href="#" class="flex items-center gap-2.5 group">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-xl sm:text-2xl shadow-lg border border-sky-200/40 group-hover:scale-105 transition">
+                    🏎️
+                </div>
+                <div>
+                    <div class="font-arcade font-black text-sm sm:text-lg tracking-wider text-white leading-none">
+                        SCIENCE <span class="text-sky-400">DRIVE</span>
+                    </div>
+                    <div class="text-[10px] sm:text-xs font-bold text-amber-400 tracking-widest mt-0.5">
+                        YEAR 7 SPN21 BRUNEI
+                    </div>
+                </div>
+            </a>
+
+            <!-- Pautan Navigasi Desktop -->
+            <nav class="hidden md:flex items-center gap-6 text-sm font-bold text-slate-300">
+                <a href="#ciri-ciri" class="hover:text-sky-400 transition">Ciri Utama</a>
+                <a href="#dunia-misi" class="hover:text-sky-400 transition">5 Dunia Misi</a>
+                <a href="#kuasa-kawalan" class="hover:text-sky-400 transition">Power-Up & Kawalan</a>
+            </nav>
+
+            <!-- Butang Mula Bermain Terus ke game.html -->
+            <div class="flex items-center gap-2.5">
+                <a href="game.html" class="btn-arcade btn-green px-4 sm:px-6 py-2.5 rounded-xl font-arcade font-black text-xs sm:text-sm text-white flex items-center gap-2 tracking-wide">
+                    <span>MULA BERMAIN</span>
+                    <span>▶</span>
+                </a>
+                <button id="mobile-menu-btn" type="button" aria-label="Buka Menu" class="md:hidden p-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-sky-300 hover:bg-slate-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu Mudah Alih -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/95 border-b border-slate-800 px-4 pt-2 pb-4 space-y-2">
+            <a href="#ciri-ciri" class="mobile-nav-link block py-2 px-3 rounded-xl text-sm font-bold text-slate-200 hover:bg-slate-800">⚡ Ciri Utama</a>
+            <a href="#dunia-misi" class="mobile-nav-link block py-2 px-3 rounded-xl text-sm font-bold text-slate-200 hover:bg-slate-800">🗺️ 5 Dunia Misi</a>
+            <a href="#kuasa-kawalan" class="mobile-nav-link block py-2 px-3 rounded-xl text-sm font-bold text-slate-200 hover:bg-slate-800">🛡️ Power-Up & Kawalan</a>
+        </div>
+    </header>
+
+    <main class="relative z-10">
+        <!-- ==================== 1. HERO SECTION ==================== -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-16 sm:pb-24">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                <!-- Kandungan Teks & CTA -->
+                <div class="lg:col-span-7 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-5 shadow-lg uppercase tracking-wider">
+                        <span>🇧🇳</span>
+                        <span>Year 7 Science Edition – SPN21 Brunei Darussalam</span>
+                    </div>
+
+                    <h1 class="font-arcade text-4xl sm:text-6xl xl:text-7xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-sky-200 to-sky-500 drop-shadow-[0_6px_0_rgba(3,105,161,0.85)] leading-tight">
+                        SCIENCE DRIVE
+                    </h1>
+                    <h2 class="font-arcade text-xl sm:text-3xl font-extrabold text-amber-400 tracking-widest mt-1 drop-shadow-[0_3px_0_rgba(146,64,14,0.85)]">
+                        THE ULTIMATE QUEST
+                    </h2>
+
+                    <p class="text-slate-200 text-base sm:text-lg mt-5 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        Gabungan aksi pemanduan kereta sport 3D berkelajuan tinggi dan <span class="text-emerald-400 font-bold">Cabaran Kuiz Sains Tahun 7 (SPN21)</span>. Elak halangan, kumpul syiling & power-up, dan jawab soalan Sains untuk bergelar <span class="text-amber-300 font-bold">Juara Sains</span>!
+                    </p>
+
+                    <!-- Butang Dwi-CTA -->
+                    <div class="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="game.html" class="btn-arcade btn-green w-full sm:w-auto px-8 py-4 rounded-2xl font-arcade text-lg sm:text-xl font-black text-white flex items-center justify-center gap-3">
+                            <span>▶</span>
+                            <span>MAIN SEKARANG</span>
+                        </a>
+                        <a href="#dunia-misi" class="btn-arcade btn-blue w-full sm:w-auto px-7 py-4 rounded-2xl font-arcade text-base sm:text-lg font-bold text-white flex items-center justify-center gap-2.5">
+                            <span>🗺️</span>
+                            <span>TEROKAI 5 LEVEL</span>
+                        </a>
+                    </div>
+
+                    <!-- Statistik Ringkas -->
+                    <div class="mt-8 grid grid-cols-3 gap-3 max-w-lg mx-auto lg:mx-0">
+                        <div class="bg-slate-900/85 border border-sky-500/30 rounded-2xl p-3 text-center">
+                            <div class="font-arcade text-xl sm:text-2xl font-black text-sky-400">5</div>
+                            <div class="text-xs text-slate-300 font-semibold">Dunia 3D</div>
+                        </div>
+                        <div class="bg-slate-900/85 border border-emerald-500/30 rounded-2xl p-3 text-center">
+                            <div class="font-arcade text-xl sm:text-2xl font-black text-emerald-400">15</div>
+                            <div class="text-xs text-slate-300 font-semibold">Soalan SPN21</div>
+                        </div>
+                        <div class="bg-slate-900/85 border border-amber-500/30 rounded-2xl p-3 text-center">
+                            <div class="font-arcade text-xl sm:text-2xl font-black text-amber-400">3D</div>
+                            <div class="text-xs text-slate-300 font-semibold">WebGL Arcade</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pratonton Visual Arked Interaktif -->
+                <div class="lg:col-span-5">
+                    <div class="arcade-panel rounded-3xl p-5 sm:p-6 relative overflow-hidden">
+                        <!-- Header Pratonton HUD -->
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center gap-2 bg-slate-950/90 px-3 py-1.5 rounded-xl border border-slate-700">
+                                <span class="text-sm">❤️❤️❤️</span>
+                                <span class="text-slate-600">|</span>
+                                <span class="font-arcade text-xs font-black text-sky-400">LEVEL 1 - 5</span>
+                            </div>
+                            <div class="bg-slate-950/90 px-3 py-1.5 rounded-xl border border-amber-500/40 font-arcade text-xs font-bold text-amber-400">
+                                🪙 +100 PTS / SOALAN
+                            </div>
+                        </div>
+
+                        <!-- Kanvas Ilustrasi Jalan & Kereta Sport -->
+                        <div class="relative h-64 sm:h-72 rounded-2xl bg-gradient-to-b from-sky-900 via-indigo-950 to-slate-900 border-2 border-sky-400/40 overflow-hidden flex items-center justify-center">
+                            <!-- Bintang & Cahaya Horizon -->
+                            <div class="absolute top-4 left-6 text-amber-300 text-xs font-arcade animate-pulse">★ NITRO READY</div>
+                            <div class="absolute top-4 right-6 text-cyan-300 text-xs font-arcade">🛡️ SHIELD ON</div>
+
+                            <!-- Permukaan Jalan Perspektif -->
+                            <div class="absolute bottom-0 w-56 sm:w-64 h-44 bg-slate-800 border-x-4 border-emerald-400 flex justify-evenly overflow-hidden" style="transform: perspective(220px) rotateX(35deg); transform-origin: bottom;">
+                                <div class="w-1.5 h-full road-stripes-anim"></div>
+                                <div class="w-1.5 h-full road-stripes-anim"></div>
+                            </div>
+
+                            <!-- Syiling Berputar -->
+                            <div class="absolute top-20 left-1/4 coin-anim w-8 h-8 rounded-full bg-amber-400 border-2 border-yellow-200 flex items-center justify-center font-arcade font-black text-slate-950 text-xs shadow-lg">
+                                $
+                            </div>
+                            <div class="absolute top-24 right-1/4 coin-anim w-8 h-8 rounded-full bg-amber-400 border-2 border-yellow-200 flex items-center justify-center font-arcade font-black text-slate-950 text-xs shadow-lg">
+                                $
+                            </div>
+
+                            <!-- Kereta Sport 3D SVG -->
+                            <div class="relative z-10 mt-16 car-float">
+                                <svg class="w-36 sm:w-44 h-auto drop-shadow-[0_14px_18px_rgba(0,0,0,0.85)]" viewBox="0 0 200 110" fill="none">
+                                    <!-- Bayang Bawah -->
+                                    <ellipse cx="100" cy="96" rx="76" ry="10" fill="rgba(0,0,0,0.65)"/>
+                                    <!-- Spoiler -->
+                                    <rect x="34" y="34" width="132" height="8" rx="4" fill="#dc2626" stroke="#fca5a5" stroke-width="2"/>
+                                    <rect x="52" y="42" width="8" height="14" fill="#1e293b"/>
+                                    <rect x="140" y="42" width="8" height="14" fill="#1e293b"/>
+                                    <!-- Kabin -->
+                                    <path d="M52 54 L66 32 H134 L148 54 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+                                    <!-- Badan Kereta -->
+                                    <rect x="26" y="52" width="148" height="30" rx="10" fill="#ef4444" stroke="#fecaca" stroke-width="2"/>
+                                    <!-- Jalur Putih -->
+                                    <rect x="86" y="52" width="28" height="30" fill="#ffffff"/>
+                                    <!-- Lampu Belakang -->
+                                    <rect x="34" y="60" width="26" height="8" rx="3" fill="#fef08a"/>
+                                    <rect x="140" y="60" width="26" height="8" rx="3" fill="#fef08a"/>
+                                    <!-- Ekzos Nitro -->
+                                    <circle cx="64" cy="78" r="7" fill="#38bdf8"/>
+                                    <circle cx="136" cy="78" r="7" fill="#38bdf8"/>
+                                    <!-- Tayar -->
+                                    <rect x="32" y="76" width="22" height="18" rx="5" fill="#090d16"/>
+                                    <rect x="146" y="76" width="22" height="18" rx="5" fill="#090d16"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Butang Lancar Terus di Bawah Pratonton -->
+                        <div class="mt-4">
+                            <a href="game.html" class="btn-arcade btn-amber w-full py-3.5 rounded-2xl font-arcade text-sm sm:text-base font-black text-white flex items-center justify-center gap-2">
+                                <span>🚀</span>
+                                <span>LANCARKAN PERMAINAN SEKARANG</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. CIRI UTAMA PERMAINAN ==================== -->
+        <section id="ciri-ciri" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 border-t border-slate-800/80">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <span class="text-xs font-arcade font-bold uppercase tracking-widest text-sky-400">PEMBELAJARAN INTERAKTIF</span>
+                <h2 class="font-arcade text-2xl sm:text-4xl font-black text-white mt-1">KENAPA SCIENCE DRIVE?</h2>
+                <p class="text-slate-300 text-sm sm:text-base mt-2">Direka khusus untuk membantu pelajar Tahun 7 di Negara Brunei Darussalam mengulang kaji Sains dengan cara yang menyeronokkan.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="arcade-panel rounded-3xl p-6 hover:border-sky-400 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400 flex items-center justify-center text-2xl mb-4">
+                        🏎️
+                    </div>
+                    <h3 class="font-arcade text-lg font-bold text-white mb-2">Pemanduan 3D Responsif</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Kawalan pemanduan 3 lorong yang lancar di komputer (kekunci anak panah / WASD) mahupun skrin sentuh telefon pintar & tablet.
+                    </p>
+                </div>
+
+                <div class="arcade-panel rounded-3xl p-6 hover:border-emerald-400 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-2xl mb-4">
+                        🧪
+                    </div>
+                    <h3 class="font-arcade text-lg font-bold text-white mb-2">Silibus SPN21 Year 7</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Setiap garisan penamat menguji kefahaman melalui 3 tahap soalan (Basic, Sederhana & KBAT) lengkap dengan penerangan saintifik.
+                    </p>
+                </div>
+
+                <div class="arcade-panel rounded-3xl p-6 hover:border-amber-400 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl mb-4">
+                        🏆
+                    </div>
+                    <h3 class="font-arcade text-lg font-bold text-white mb-2">Ganjaran Syiling & Tahap</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Kumpul syiling emas di sepanjang litar, buka kesemua 5 tahap secara berperingkat, dan raih gelaran Juara Sains Tahun 7.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. 5 DUNIA MISI & TOPIK SAINS SPN21 ==================== -->
+        <section id="dunia-misi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 border-t border-slate-800/80">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <span class="text-xs font-arcade font-bold uppercase tracking-widest text-emerald-400">5 LALUAN & 5 MODUL SAINS</span>
+                <h2 class="font-arcade text-2xl sm:text-4xl font-black text-white mt-1">TEROKAI 5 DUNIA MISI</h2>
+                <p class="text-slate-300 text-sm sm:text-base mt-2">Lengkapkan pemanduan dan jawab 3 soalan Sains pada setiap checkpoint untuk mara ke dunia seterusnya.</p>
+            </div>
+
+            <div id="levels-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Kad 5 Level dijana secara dinamik & bersih oleh skrip -->
+            </div>
+        </section>
+
+        <!-- ==================== 4. POWER-UP & KAWALAN PEMANDUAN ==================== -->
+        <section id="kuasa-kawalan" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 border-t border-slate-800/80">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Power-Ups -->
+                <div class="arcade-panel rounded-3xl p-6 sm:p-8">
+                    <h3 class="font-arcade text-xl sm:text-2xl font-black text-amber-400 mb-2">⚡ POWER-UP LITAR</h3>
+                    <p class="text-slate-300 text-sm mb-5">Tangkap kristal kuasa di sepanjang lebuh raya untuk kelebihan taktikal:</p>
+
+                    <div class="space-y-3.5">
+                        <div class="bg-slate-900/90 border border-cyan-400/40 rounded-2xl p-4 flex items-center gap-4">
+                            <span class="text-3xl">🛡️</span>
+                            <div>
+                                <div class="font-arcade font-bold text-cyan-300 text-sm sm:text-base">ENERGY SHIELD</div>
+                                <p class="text-xs sm:text-sm text-slate-300">Melindungi kereta sport anda daripada 1 pelanggaran halangan tanpa kehilangan nyawa.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/90 border border-orange-400/40 rounded-2xl p-4 flex items-center gap-4">
+                            <span class="text-3xl">🔥</span>
+                            <div>
+                                <div class="font-arcade font-bold text-orange-400 text-sm sm:text-base">NITRO TURBO BOOST</div>
+                                <p class="text-xs sm:text-sm text-slate-300">Memecut pada kelajuan maksimum dan merempuh halangan di hadapan dengan kebal!</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/90 border border-pink-400/40 rounded-2xl p-4 flex items-center gap-4">
+                            <span class="text-3xl">🧲</span>
+                            <div>
+                                <div class="font-arcade font-bold text-pink-400 text-sm sm:text-base">COIN MAGNET</div>
+                                <p class="text-xs sm:text-sm text-slate-300">Menarik semua syiling emas dari ketiga-tiga lorong terus ke kereta anda secara automatik.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panduan Kawalan -->
+                <div class="arcade-panel rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-arcade text-xl sm:text-2xl font-black text-sky-400 mb-2">🎮 KAWALAN PEMAIN</h3>
+                        <p class="text-slate-300 text-sm mb-5">Sokongan penuh untuk papan kekunci PC dan skrin sentuh mudah alih:</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4">
+                                <div class="font-arcade text-xs text-sky-300 font-bold mb-1">STERING KIRI / KANAN</div>
+                                <div class="text-white font-bold">Kekunci ◀ / ▶ atau A / D</div>
+                                <div class="text-xs text-slate-400 mt-1">Atau butang sentuh bawah kiri</div>
+                            </div>
+
+                            <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4">
+                                <div class="font-arcade text-xs text-emerald-300 font-bold mb-1">PECUT & BREK</div>
+                                <div class="text-white font-bold">Kekunci ▲ / ▼ atau W / S</div>
+                                <div class="text-xs text-slate-400 mt-1">Kawal kelajuan selekoh tajam</div>
+                            </div>
+
+                            <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4">
+                                <div class="font-arcade text-xs text-amber-300 font-bold mb-1">AKTIFKAN NITRO</div>
+                                <div class="text-white font-bold">Kekunci SPACEBAR</div>
+                                <div class="text-xs text-slate-400 mt-1">Atau tekan butang 🔥 NITRO</div>
+                            </div>
+
+                            <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4">
+                                <div class="font-arcade text-xs text-purple-300 font-bold mb-1">PINTASAN KUIZ</div>
+                                <div class="text-white font-bold">Kekunci 1 - 4 / A - D</div>
+                                <div class="text-xs text-slate-400 mt-1">Tekan ENTER untuk soalan seterusnya</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <a href="game.html" class="btn-arcade btn-green w-full py-4 rounded-2xl font-arcade text-base sm:text-lg font-black text-white flex items-center justify-center gap-2.5">
+                            <span>▶</span>
+                            <span>CUBA MEMANDU SEKARANG</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 5. CALL TO ACTION AKHIR ==================== -->
+        <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-20">
+            <div class="arcade-panel rounded-3xl p-8 sm:p-12 text-center border-sky-400/60 bg-gradient-to-br from-slate-900/95 via-indigo-950/90 to-slate-900/95">
+                <div class="text-4xl sm:text-5xl mb-3">🏁🔬🏆</div>
+                <h2 class="font-arcade text-2xl sm:text-4xl font-black text-white">
+                    BERSEDIA MENJADI JUARA SAINS YEAR 7?
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-lg max-w-2xl mx-auto mt-3 mb-7">
+                    Masukkan nama pemandu anda di dalam permainan, pilih laluan anda, dan buktikan penguasaan Sains Tahun 7 SPN21 anda hari ini!
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <a href="game.html" class="btn-arcade btn-green w-full sm:w-auto px-10 py-4 rounded-2xl font-arcade text-lg sm:text-xl font-black text-white flex items-center justify-center gap-3">
+                        <span>🚀</span>
+                        <span>LANCARKAN PERMAINAN</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="relative z-10 bg-slate-950/95 border-t border-slate-800 py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div>
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                    <span class="text-xl">🏎️</span>
+                    <span class="font-arcade font-black text-base text-white">SCIENCE DRIVE: THE ULTIMATE QUEST</span>
+                </div>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">
+                    Bahan Bantu Mengajar Digital Interaktif • Kurikulum Sains Tahun 7 (Year 7 Science – SPN21 Negara Brunei Darussalam).
+                </p>
+            </div>
+            <div class="text-xs text-slate-500">
+                © 2026 Science Drive Educational Arcade • Year 7 Science Brunei
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== SKRIP BERSIH & BEBAS RALAT ==================== -->
+    <script>
+        (function () {
+            const MISSIONS = [
+                {
+                    id: 1,
+                    name: "GREEN FOREST HIGHWAY",
+                    theme: "Hutan Tropika Borneo",
+                    distance: "500m",
+                    topic: "Introduction to Science, Lab Apparatus & Measurement",
+                    icon: "🌲",
+                    badgeBg: "bg-emerald-500 text-slate-950",
+                    borderClass: "border-emerald-400/50"
+                },
+                {
+                    id: 2,
+                    name: "DESERT ADVENTURE",
+                    theme: "Padang Pasir Terik",
+                    distance: "700m",
+                    topic: "Cells, Classification of Living Things & Biodiversity",
+                    icon: "🏜️",
+                    badgeBg: "bg-amber-400 text-slate-950",
+                    borderClass: "border-amber-400/50"
+                },
+                {
+                    id: 3,
+                    name: "FUTURE CITY",
+                    theme: "Bandar Futuristik Neon",
+                    distance: "900m",
+                    topic: "Particulate Nature of Matter, Elements, Compounds & Mixtures",
+                    icon: "🏙️",
+                    badgeBg: "bg-purple-400 text-slate-950",
+                    borderClass: "border-purple-400/50"
+                },
+                {
+                    id: 4,
+                    name: "MOUNTAIN RUSH",
+                    theme: "Lebuh Raya Pergunungan",
+                    distance: "1100m",
+                    topic: "Forces, Energy Forms & Heat Transfer",
+                    icon: "🏔️",
+                    badgeBg: "bg-sky-400 text-slate-950",
+                    borderClass: "border-sky-400/50"
+                },
+                {
+                    id: 5,
+                    name: "SPACE HIGHWAY",
+                    theme: "Lebuh Raya Galaksi Angkasa",
+                    distance: "1300m",
+                    topic: "Acids & Alkalis, Air Pollution & Earth in Space",
+                    icon: "🚀",
+                    badgeBg: "bg-pink-400 text-slate-950",
+                    borderClass: "border-pink-400/50"
+                }
+            ];
+
+            // Paparkan Kad 5 Dunia Misi dengan Pautan Terus ke game.html
+            const levelsGrid = document.getElementById("levels-grid");
+            if (levelsGrid) {
+                MISSIONS.forEach(function (lvl) {
+                    const card = document.createElement("div");
+                    card.className = "arcade-panel rounded-3xl p-6 flex flex-col justify-between border-2 " + lvl.borderClass;
+                    card.innerHTML =
+                        '<div>' +
+                            '<div class="flex items-center justify-between mb-3">' +
+                                '<span class="font-arcade text-xs font-black px-3 py-1 rounded-full ' + lvl.badgeBg + '">LEVEL ' + lvl.id + '</span>' +
+                                '<span class="font-arcade text-xs font-bold text-amber-300">🎯 ' + lvl.distance + '</span>' +
+                            '</div>' +
+                            '<div class="text-3xl mb-2">' + lvl.icon + '</div>' +
+                            '<h3 class="font-arcade text-lg sm:text-xl font-black text-white">' + lvl.name + '</h3>' +
+                            '<p class="text-xs text-slate-400 font-semibold mt-0.5">Tema: ' + lvl.theme + '</p>' +
+                            '<div class="mt-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3.5">' +
+                                '<div class="text-[11px] font-bold uppercase text-sky-400 mb-1">🔬 Topik Year 7 SPN21:</div>' +
+                                '<p class="text-xs sm:text-sm text-slate-200 font-medium leading-snug">' + lvl.topic + '</p>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="mt-5">' +
+                            '<a href="game.html" class="btn-arcade btn-green w-full py-3 rounded-xl font-arcade text-xs sm:text-sm font-black text-white flex items-center justify-center gap-2">' +
+                                '<span>▶</span>' +
+                                '<span>MAIN LEVEL ' + lvl.id + '</span>' +
+                            '</a>' +
+                        '</div>';
+                    levelsGrid.appendChild(card);
+                });
+            }
+
+            // Togol Menu Mudah Alih
+            const mobileBtn = document.getElementById("mobile-menu-btn");
+            const mobileMenu = document.getElementById("mobile-menu");
+            if (mobileBtn && mobileMenu) {
+                mobileBtn.addEventListener("click", function () {
+                    mobileMenu.classList.toggle("hidden");
+                });
+                document.querySelectorAll(".mobile-nav-link").forEach(function (link) {
+                    link.addEventListener("click", function () {
+                        mobileMenu.classList.add("hidden");
+                    });
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
