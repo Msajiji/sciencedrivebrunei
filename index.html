@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SCIENCE DRIVE: THE ULTIMATE QUEST - Year 7 Science Brunei (SPN21)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts: Orbitron & Fredoka untuk gaya Arcade Pendidikan Moden -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Fredoka', sans-serif;
+            background-color: #090d16;
+            color: #ffffff;
+        }
+        .font-arcade {
+            font-family: 'Orbitron', sans-serif;
+        }
+        #game-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: block;
+        }
+        /* Kesan Kaca & Butang Arcade 3D */
+        .arcade-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+        .btn-arcade {
+            position: relative;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+            cursor: pointer;
+        }
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.4) !important;
+        }
+        .btn-green {
+            background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+            box-shadow: 0 6px 0 #14532d, 0 10px 20px rgba(34, 197, 94, 0.4);
+            border: 2px solid #86efac;
+        }
+        .btn-blue {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 0 #1e3a8a, 0 10px 20px rgba(59, 130, 246, 0.4);
+            border: 2px solid #93c5fd;
+        }
+        .btn-amber {
+            background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
+            box-shadow: 0 6px 0 #78350f, 0 10px 20px rgba(245, 158, 11, 0.4);
+            border: 2px solid #fde68a;
+        }
+        .btn-red {
+            background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+            box-shadow: 0 6px 0 #7f1d1d, 0 10px 20px rgba(239, 68, 68, 0.4);
+            border: 2px solid #fca5a5;
+        }
+        .btn-purple {
+            background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%);
+            box-shadow: 0 6px 0 #581c87, 0 10px 20px rgba(168, 85, 247, 0.4);
+            border: 2px solid #d8b4fe;
+        }
+        /* Animasi */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(250, 204, 21, 0.7)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 28px rgba(250, 204, 21, 1)); }
+        }
+        .animate-trophy {
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        /* Kawalan sentuhan mudah alih */
+        .touch-pad {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(6px);
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            transition: background 0.1s, transform 0.1s;
+        }
+        .touch-pad:active {
+            background: rgba(56, 189, 248, 0.45);
+            transform: scale(0.92);
+        }
+        /* Custom Scrollbar untuk skrin kuiz kecil */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Kanvas Utama 3D Three.js -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Lapisan UI Keseluruhan -->
+    <div id="ui-layer" class="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between">
+
+        <!-- ==================== 1. MAIN MENU ==================== -->
+        <div id="screen-menu" class="pointer-events-auto w-full h-full flex flex-col items-center justify-between p-4 sm:p-8 bg-gradient-to-b from-slate-950/75 via-slate-900/40 to-slate-950/85">
+            <!-- Bar Atas Menu -->
+            <div class="w-full max-w-5xl flex justify-between items-center">
+                <div class="flex items-center gap-2 bg-slate-900/80 border border-amber-400/50 px-4 py-2 rounded-full shadow-lg">
+                    <span class="text-xl">🪙</span>
+                    <span id="menu-total-coins" class="font-arcade text-amber-400 font-bold text-sm sm:text-base">0</span>
+                    <span class="mx-2 text-slate-600">|</span>
+                    <span class="text-xs sm:text-sm text-sky-300 font-semibold">REKOD: <span id="menu-high-score" class="font-arcade text-white">0</span></span>
+                </div>
+
+                <button id="btn-sound-toggle" class="btn-arcade bg-slate-800/90 border-2 border-sky-400/60 hover:bg-slate-700 text-white px-4 py-2 rounded-full flex items-center gap-2 font-bold text-sm shadow-lg">
+                    <span id="sound-icon">🔊</span>
+                    <span id="sound-text" class="hidden sm:inline">AUDIO: ON</span>
+                </button>
+            </div>
+
+            <!-- Tajuk Utama & Logo -->
+            <div class="text-center my-auto px-2 animate-pop">
+                <div class="inline-block bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full mb-3 tracking-wider shadow-md uppercase">
+                    🇧🇳 Year 7 Science Edition – SPN21 Brunei Darussalam
+                </div>
+                <h1 class="font-arcade text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-sky-200 to-sky-500 drop-shadow-[0_6px_0_rgba(3,105,161,0.9)]">
+                    SCIENCE DRIVE
+                </h1>
+                <h2 class="font-arcade text-xl sm:text-3xl font-extrabold text-amber-400 tracking-widest mt-1 drop-shadow-[0_3px_0_rgba(146,64,14,0.9)]">
+                    THE ULTIMATE QUEST
+                </h2>
+                <p class="text-slate-200 text-sm sm:text-lg mt-3 max-w-xl mx-auto font-medium bg-slate-950/60 px-4 py-2 rounded-2xl border border-white/10">
+                    Pandu kereta sport 3D merentasi 5 dunia mencabar dan selesaikan Cabaran Sains Year 7 SPN21 untuk bergelar Juara Sains!
+                </p>
+            </div>
+
+            <!-- Butang Menu Utama -->
+            <div class="w-full max-w-md flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-8">
+                <!-- Ruangan Input Nama Pemain -->
+                <div class="bg-slate-900/90 border-2 border-sky-400/60 p-3 rounded-2xl shadow-lg">
+                    <label for="player-name-input" class="block text-xs font-arcade font-bold text-sky-300 mb-1.5 tracking-wider">
+                        🧑‍🚀 NAMA PEMANDU (UNTUK LEADERBOARD):
+                    </label>
+                    <input id="player-name-input" type="text" maxlength="18" placeholder="Masukkan nama anda..." 
+                        class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none rounded-xl px-4 py-2.5 text-white font-bold text-base sm:text-lg placeholder-slate-500 transition" />
+                    <p id="name-error-msg" class="hidden text-rose-400 text-xs font-bold mt-1.5">⚠️ Sila masukkan nama anda terlebih dahulu sebelum bermain!</p>
+                </div>
+
+                <button id="btn-play" class="btn-arcade btn-green w-full py-4 rounded-2xl font-arcade text-xl sm:text-2xl font-black tracking-wider text-white flex items-center justify-center gap-3">
+                    <span>▶</span> PLAY GAME
+                </button>
+                <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                    <button id="btn-levels" class="btn-arcade btn-blue py-3.5 rounded-2xl font-arcade text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-1.5">
+                        <span>🗺️</span> LEVELS
+                    </button>
+                    <button id="btn-leaderboard" class="btn-arcade btn-purple py-3.5 rounded-2xl font-arcade text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-1.5">
+                        <span>🏆</span> RANKING
+                    </button>
+                    <button id="btn-howto" class="btn-arcade btn-amber py-3.5 rounded-2xl font-arcade text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-1.5">
+                        <span>📖</span> PANDUAN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL LEADERBOARD ==================== -->
+        <div id="screen-leaderboard" class="hidden pointer-events-auto fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="arcade-panel w-full max-w-2xl rounded-3xl p-5 sm:p-7 max-h-[90vh] flex flex-col animate-pop border-purple-400">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-4">
+                    <div>
+                        <h2 class="font-arcade text-2xl sm:text-3xl font-black text-amber-400">🏆 PAPAN PENDAHULU</h2>
+                        <p class="text-slate-300 text-xs sm:text-sm">Senarai 10 Juara Pemandu Sains Terbaik!</p>
+                    </div>
+                    <button id="btn-close-leaderboard" class="btn-arcade btn-red w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center">✕</button>
+                </div>
+
+                <div id="leaderboard-list" class="space-y-2.5 overflow-y-auto pr-1 flex-1">
+                    <!-- Senarai skor dijana secara dinamik -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 2. MODAL LEVEL SELECT ==================== -->
+        <div id="screen-levels" class="hidden pointer-events-auto fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="arcade-panel w-full max-w-3xl rounded-3xl p-5 sm:p-7 max-h-[90vh] flex flex-col animate-pop">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-4">
+                    <div>
+                        <h2 class="font-arcade text-2xl sm:text-3xl font-black text-sky-400">PILIH LEVEL MISI</h2>
+                        <p class="text-slate-300 text-xs sm:text-sm">Lengkapkan kuiz di penghujung setiap level untuk membuka level seterusnya.</p>
+                    </div>
+                    <button id="btn-close-levels" class="btn-arcade btn-red w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center">✕</button>
+                </div>
+
+                <div id="level-cards-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1">
+                    <!-- Kad level dijana melalui JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 3. MODAL HOW TO PLAY ==================== -->
+        <div id="screen-howto" class="hidden pointer-events-auto fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="arcade-panel w-full max-w-2xl rounded-3xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto animate-pop">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                    <h2 class="font-arcade text-2xl font-black text-amber-400">CARA BERMAIN</h2>
+                    <button id="btn-close-howto" class="btn-arcade btn-red w-10 h-10 rounded-xl font-bold text-lg flex items-center justify-center">✕</button>
+                </div>
+
+                <div class="space-y-4 text-sm sm:text-base text-slate-200">
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-sky-500/30">
+                        <h3 class="font-bold text-sky-400 text-lg mb-2">🎮 Kawalan Pemanduan (PC & Sentuhan)</h3>
+                        <ul class="space-y-1.5">
+                            <li>⬅️ / ➡️ atau <b>A / D</b>: Tukar lorong kiri dan kanan.</li>
+                            <li>⬆️ / ⬇️ atau <b>W / S</b>: Pecut dan brek kereta.</li>
+                            <li>⚡ <b>Spacebar</b> (atau butang NITRO): Pecutan turbo pantas!</li>
+                            <li>⌨️ <b>Kekunci 1-4 / A-D & Enter</b>: Pilih jawapan & teruskan kuiz dengan pantas di PC.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-emerald-500/30">
+                        <h3 class="font-bold text-emerald-400 text-lg mb-2">🛡️ Power-Up & Syiling</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
+                            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-cyan-400/40">
+                                <span class="text-lg">🛡️</span> <b>SHIELD:</b> Melindungi kereta daripada 1 pelanggaran.
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-orange-400/40">
+                                <span class="text-lg">🔥</span> <b>NITRO:</b> Kelajuan maksimum & kebal seketika.
+                            </div>
+                            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-pink-400/40">
+                                <span class="text-lg">🧲</span> <b>MAGNET:</b> Menarik semua syiling berhampiran.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-amber-500/30">
+                        <h3 class="font-bold text-amber-400 text-lg mb-1">🧪 Science Challenge (Year 7 Brunei SPN21)</h3>
+                        <p>Apabila tiba di garisan penamat setiap level, jawab <b>3 soalan Sains Year 7</b> (Basic, Intermediate, HOTS/KBAT). Semua 3 soalan wajib dijawab dengan betul untuk membuka level seterusnya!</p>
+                    </div>
+                </div>
+
+                <button id="btn-howto-ok" class="btn-arcade btn-green w-full py-3.5 rounded-2xl font-arcade font-bold text-lg mt-5">FAHAM & MULA!</button>
+            </div>
+        </div>
+
+        <!-- ==================== 4. GAME HUD (SEMASA MEMANDU) ==================== -->
+        <div id="screen-hud" class="hidden w-full h-full flex flex-col justify-between p-3 sm:p-5">
+            <!-- Bahagian Atas HUD -->
+            <div class="w-full max-w-6xl mx-auto flex flex-col gap-2">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <!-- Nyawa & Level -->
+                    <div class="flex items-center gap-2 sm:gap-3 bg-slate-950/80 backdrop-blur-md border border-slate-700 px-3 sm:px-4 py-2 rounded-2xl shadow-lg">
+                        <div id="hud-lives" class="flex items-center gap-1 text-lg sm:text-2xl">
+                            ❤️❤️❤️
+                        </div>
+                        <span class="text-slate-600">|</span>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span id="hud-level-badge" class="font-arcade text-xs sm:text-sm font-black text-sky-400">LEVEL 1</span>
+                                <span id="hud-player-name" class="text-[11px] bg-sky-500/20 text-sky-200 px-2 py-0.5 rounded-full font-bold truncate max-w-[90px]">PEMANDU</span>
+                            </div>
+                            <div id="hud-level-name" class="text-[11px] sm:text-xs text-slate-300 font-semibold truncate max-w-[120px] sm:max-w-[180px]">GREEN FOREST</div>
+                        </div>
+                    </div>
+
+                    <!-- Skor, Syiling & Kawalan Audio/Menu -->
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="bg-slate-950/80 backdrop-blur-md border border-amber-500/40 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl flex items-center gap-3 shadow-lg">
+                            <div class="text-center">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold">Syiling</div>
+                                <div class="font-arcade text-sm sm:text-lg font-bold text-amber-400">🪙 <span id="hud-coins">0</span></div>
+                            </div>
+                            <span class="text-slate-700">|</span>
+                            <div class="text-center">
+                                <div class="text-[10px] text-slate-400 uppercase font-bold">Skor</div>
+                                <div id="hud-score" class="font-arcade text-sm sm:text-lg font-bold text-white">0</div>
+                            </div>
+                        </div>
+
+                        <button id="btn-hud-sound" class="pointer-events-auto btn-arcade bg-slate-900/90 border border-slate-600 w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg shadow-lg">
+                            🔊
+                        </button>
+                        <button id="btn-hud-menu" class="pointer-events-auto btn-arcade bg-slate-900/90 border border-slate-600 w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg" title="Kembali ke Menu">
+                            🏠
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bar Kemajuan Jarak (Progress Bar) -->
+                <div class="w-full max-w-2xl mx-auto bg-slate-950/85 backdrop-blur-md border border-sky-500/40 p-2 rounded-2xl shadow-lg">
+                    <div class="flex justify-between items-center text-xs font-bold mb-1 px-1">
+                        <span class="text-sky-300">JARAK: <span id="hud-distance" class="font-arcade text-white">0</span>m</span>
+                        <span id="hud-speed" class="font-arcade text-emerald-400">120 KM/J</span>
+                        <span class="text-amber-300">SASARAN: <span id="hud-target" class="font-arcade text-white">500</span>m</span>
+                    </div>
+                    <div class="w-full h-3.5 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700 relative">
+                        <div id="hud-progress-bar" class="h-full bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 rounded-full transition-all duration-100" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Penunjuk Status Power-Up Aktif -->
+                <div id="hud-powerups" class="flex justify-center gap-2 mt-1">
+                    <div id="badge-shield" class="hidden bg-cyan-500/90 text-slate-950 font-arcade font-black text-xs px-3 py-1 rounded-full shadow-lg border border-white">
+                        🛡️ SHIELD AKTIF
+                    </div>
+                    <div id="badge-nitro" class="hidden bg-orange-500/90 text-white font-arcade font-black text-xs px-3 py-1 rounded-full shadow-lg border border-yellow-200 animate-pulse">
+                        🔥 NITRO BOOST!
+                    </div>
+                    <div id="badge-magnet" class="hidden bg-pink-500/90 text-white font-arcade font-black text-xs px-3 py-1 rounded-full shadow-lg border border-pink-200">
+                        🧲 MAGNET SYILING
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paparan Mesej Tengah (Countdown 3, 2, 1, GO! / Amaran Pelanggaran) -->
+            <div id="hud-center-banner" class="my-auto text-center pointer-events-none">
+                <div id="countdown-text" class="font-arcade text-6xl sm:text-8xl font-black text-amber-400 drop-shadow-[0_6px_0_rgba(0,0,0,0.9)] hidden">
+                    3
+                </div>
+                <div id="toast-message" class="inline-block font-arcade text-base sm:text-xl font-bold px-5 py-2 rounded-full bg-slate-950/85 border-2 border-amber-400 text-amber-300 shadow-xl opacity-0 transition-opacity duration-300">
+                    +10 SYILING!
+                </div>
+            </div>
+
+            <!-- Kawalan Sentuhan Bawah (Untuk Telefon Pintar, Tablet & Klik Tetikus) -->
+            <div class="w-full max-w-5xl mx-auto flex justify-between items-end pb-2 sm:pb-4 pointer-events-none">
+                <!-- Kiri & Kanan -->
+                <div class="flex gap-3 pointer-events-auto">
+                    <button id="touch-left" class="touch-pad w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl text-white shadow-xl" aria-label="Kiri">
+                        ◀
+                    </button>
+                    <button id="touch-right" class="touch-pad w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl text-white shadow-xl" aria-label="Kanan">
+                        ▶
+                    </button>
+                </div>
+
+                <!-- Nitro & Brek/Pecut -->
+                <div class="flex gap-3 items-end pointer-events-auto">
+                    <button id="touch-brake" class="touch-pad w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center text-xs font-bold text-rose-300 shadow-xl">
+                        <span class="text-xl">▼</span>
+                        BREK
+                    </button>
+                    <button id="touch-nitro" class="btn-arcade btn-amber w-20 h-20 sm:w-24 sm:h-24 rounded-full flex flex-col items-center justify-center font-arcade font-black text-xs sm:text-sm text-white shadow-2xl">
+                        <span class="text-2xl sm:text-3xl">🔥</span>
+                        NITRO
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 5. SCIENCE CHALLENGE (KUIZ AKHIR LEVEL) ==================== -->
+        <div id="screen-quiz" class="hidden pointer-events-auto fixed inset-0 z-30 bg-slate-950/90 backdrop-blur-lg flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            <div id="quiz-card" class="arcade-panel w-full max-w-2xl rounded-3xl p-5 sm:p-8 my-auto animate-pop">
+                <!-- Header Kuiz -->
+                <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-4 mb-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">CHECKPOINT DICAPAI!</span>
+                        <h2 class="font-arcade text-xl sm:text-2xl font-black text-white">SCIENCE CHALLENGE</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="quiz-progress-badge" class="bg-sky-500/20 border border-sky-400 text-sky-300 font-arcade font-bold text-xs sm:text-sm px-3 py-1.5 rounded-xl">
+                            SOALAN 1 / 3
+                        </span>
+                        <span id="quiz-difficulty-badge" class="bg-emerald-500 text-slate-950 font-arcade font-black text-xs sm:text-sm px-3 py-1.5 rounded-xl">
+                            BASIC
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Topik Sains Year 7 Brunei -->
+                <div class="mb-3 flex items-center gap-2 text-xs sm:text-sm text-amber-300 font-semibold">
+                    <span>🔬 Year 7 SPN21 Topic:</span>
+                    <span id="quiz-topic" class="underline">Introduction to Science & Laboratory Safety</span>
+                </div>
+
+                <!-- Kotak Soalan -->
+                <div class="bg-slate-800/90 border-2 border-slate-600 rounded-2xl p-4 sm:p-5 mb-5 shadow-inner">
+                    <p id="quiz-question-text" class="text-base sm:text-xl font-bold text-white leading-relaxed">
+                        Apakah organ utama yang terlibat dalam pertukaran gas semasa manusia bernafas?
+                    </p>
+                </div>
+
+                <!-- 4 Pilihan Jawapan (A, B, C, D) -->
+                <div id="quiz-options" class="grid grid-cols-1 gap-3 mb-4">
+                    <!-- Butang jawapan dijana secara dinamik -->
+                </div>
+
+                <!-- Kotak Maklum Balas & Penerangan -->
+                <div id="quiz-feedback" class="hidden rounded-2xl p-4 mb-4 border-2">
+                    <div id="quiz-feedback-title" class="font-arcade font-black text-base sm:text-lg mb-1"></div>
+                    <p id="quiz-feedback-desc" class="text-sm sm:text-base leading-snug"></p>
+                </div>
+
+                <!-- Butang Tindakan Kuiz -->
+                <div class="flex justify-end">
+                    <button id="btn-quiz-next" class="hidden btn-arcade btn-green px-6 py-3.5 rounded-2xl font-arcade font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                        SOALAN SETERUSNYA ➔
+                    </button>
+                    <button id="btn-quiz-retry" class="hidden btn-arcade btn-amber px-6 py-3.5 rounded-2xl font-arcade font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                        🔄 CUBA SEMULA SOALAN INI
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 6. LEVEL COMPLETED ==================== -->
+        <div id="screen-level-complete" class="hidden pointer-events-auto fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="arcade-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 text-center animate-pop border-emerald-400">
+                <div class="text-5xl sm:text-6xl mb-2">🏁🎉</div>
+                <h2 class="font-arcade text-2xl sm:text-4xl font-black text-emerald-400 drop-shadow">LEVEL COMPLETED!</h2>
+                <p id="complete-level-subtitle" class="text-slate-300 text-sm sm:text-base mt-1 mb-6">Tahniah! Anda berjaya melepasi Cabaran Sains Level 1.</p>
+
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-700 space-y-3 mb-6 text-left">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold">Syiling Dikumpul:</span>
+                        <span id="complete-coins" class="font-arcade text-amber-400 font-bold text-lg">🪙 0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold">Markah Kuiz Sains (3/3):</span>
+                        <span class="font-arcade text-sky-400 font-bold text-lg">+300</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold">Bonus Tamat Level:</span>
+                        <span class="font-arcade text-emerald-400 font-bold text-lg">+500</span>
+                    </div>
+                    <div class="border-t border-slate-700 pt-2 flex justify-between items-center">
+                        <span class="text-white font-bold">Jumlah Skor Terkumpul:</span>
+                        <span id="complete-total-score" class="font-arcade text-2xl font-black text-yellow-300">0</span>
+                    </div>
+                </div>
+
+                <button id="btn-next-level" class="btn-arcade btn-green w-full py-4 rounded-2xl font-arcade text-xl font-black text-white">
+                    NEXT LEVEL ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== 7. GAME OVER ==================== -->
+        <div id="screen-gameover" class="hidden pointer-events-auto fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="arcade-panel w-full max-w-md rounded-3xl p-6 sm:p-8 text-center animate-pop border-rose-500">
+                <div class="text-5xl sm:text-6xl mb-2">💥🚗</div>
+                <h2 class="font-arcade text-3xl sm:text-4xl font-black text-rose-500">GAME OVER</h2>
+                <p class="text-slate-300 text-sm sm:text-base mt-1 mb-6">Kereta anda mengalami kerosakan teruk! Jangan putus asa, cuba lagi.</p>
+
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-700 mb-6">
+                    <div class="text-xs text-slate-400 uppercase font-bold">Skor Misi Ini</div>
+                    <div id="gameover-score" class="font-arcade text-3xl font-black text-amber-400 mt-1">0</div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button id="btn-retry-level" class="btn-arcade btn-green w-full py-3.5 rounded-2xl font-arcade text-lg font-bold text-white">
+                        🔄 TRY AGAIN
+                    </button>
+                    <button id="btn-gameover-rank" class="btn-arcade btn-purple w-full py-3.5 rounded-2xl font-arcade text-lg font-bold text-white">
+                        🏆 LIHAT LEADERBOARD
+                    </button>
+                    <button id="btn-gameover-menu" class="btn-arcade btn-blue w-full py-3.5 rounded-2xl font-arcade text-lg font-bold text-white">
+                        🏠 MAIN MENU
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 8. VICTORY SCREEN (TAMAT SEMUA 5 LEVEL) ==================== -->
+        <div id="screen-victory" class="hidden pointer-events-auto fixed inset-0 z-40 bg-gradient-to-b from-indigo-950/95 via-slate-900/95 to-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
+            <div class="arcade-panel w-full max-w-xl rounded-3xl p-6 sm:p-8 text-center animate-pop border-amber-400 my-auto">
+                <!-- Piala Emas SVG Animasi -->
+                <div class="w-28 h-28 sm:w-32 sm:h-32 mx-auto mb-3 animate-trophy">
+                    <svg viewBox="0 0 120 120" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fef08a"/>
+                                <stop offset="45%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#b45309"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Pemegang Piala -->
+                        <path d="M30 30 C10 30, 10 60, 35 65" fill="none" stroke="url(#goldGrad)" stroke-width="7" stroke-linecap="round"/>
+                        <path d="M90 30 C110 30, 110 60, 85 65" fill="none" stroke="url(#goldGrad)" stroke-width="7" stroke-linecap="round"/>
+                        <!-- Badan Piala -->
+                        <path d="M30 20 L90 20 L82 65 C78 82, 42 82, 38 65 Z" fill="url(#goldGrad)" stroke="#fef9c3" stroke-width="2"/>
+                        <!-- Bintang Tengah -->
+                        <polygon points="60,32 65,45 79,45 68,53 72,66 60,58 48,66 52,53 41,45 55,45" fill="#ffffff"/>
+                        <!-- Batang & Tapak -->
+                        <rect x="53" y="78" width="14" height="18" fill="url(#goldGrad)"/>
+                        <rect x="35" y="96" width="50" height="12" rx="4" fill="#78350f" stroke="#fbbf24" stroke-width="2"/>
+                    </svg>
+                </div>
+
+                <div class="inline-block bg-amber-400 text-slate-950 font-arcade font-black text-xs px-3 py-1 rounded-full mb-2">
+                    SEMUA 5 LEVEL SELESAI!
+                </div>
+                <h2 class="font-arcade text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-yellow-200">
+                    YOU ARE A SCIENCE CHAMPION!
+                </h2>
+                <p id="victory-player-subtitle" class="text-slate-300 text-sm sm:text-base mt-2 mb-5">
+                    Luar biasa! Anda telah menakluki semua laluan dan menguasai Year 7 Science (SPN21 Brunei)!
+                </p>
+
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 bg-slate-900/90 p-4 rounded-2xl border border-amber-400/40 mb-6">
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-bold uppercase">Skor Akhir</div>
+                        <div id="victory-score" class="font-arcade text-lg sm:text-2xl font-black text-amber-400 mt-1">0</div>
+                    </div>
+                    <div class="border-x border-slate-700">
+                        <div class="text-[11px] text-slate-400 font-bold uppercase">Soalan Betul</div>
+                        <div id="victory-questions" class="font-arcade text-lg sm:text-2xl font-black text-emerald-400 mt-1">15 / 15</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-bold uppercase">Syiling</div>
+                        <div id="victory-coins" class="font-arcade text-lg sm:text-2xl font-black text-yellow-300 mt-1">0</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button id="btn-play-again" class="btn-arcade btn-green flex-1 py-4 rounded-2xl font-arcade text-lg sm:text-xl font-black text-white">
+                        🏆 PLAY AGAIN
+                    </button>
+                    <button id="btn-victory-rank" class="btn-arcade btn-purple flex-1 py-4 rounded-2xl font-arcade text-lg sm:text-xl font-black text-white">
+                        📊 LEADERBOARD
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== LOGIK PERMAINAN, THREE.JS, AUDIO & KUIZ SAINS ==================== -->
+    <script>
+        /**
+         * =========================================================================
+         * 1. PANGKALAN DATA LEVEL & 15 SOALAN YEAR 7 SCIENCE (SPN21 BRUNEI DARUSSALAM)
+         * =========================================================================
+         */
+        const LEVELS_DATA = [
+            {
+                id: 1,
+                name: "GREEN FOREST HIGHWAY",
+                themeTitle: "Hutan Tropika Borneo",
+                topic: "Introduction to Science, Lab Apparatus & Measurement",
+                targetDistance: 500,
+                baseSpeed: 42,
+                maxSpeed: 68,
+                spawnRate: 1.25,
+                skyColor: 0x38bdf8,
+                fogColor: 0x7dd3fc,
+                groundColor: 0x15803d,
+                roadColor: 0x334155,
+                laneColor: 0xfef08a,
+                accentColor: 0x22c55e,
+                envType: "forest",
+                questions: [
+                    {
+                        level: "BASIC",
+                        q: "Which laboratory apparatus is most suitable for accurately measuring 25.0 cm³ of a liquid?",
+                        options: ["Beaker", "Conical flask", "Measuring cylinder", "Evaporating dish"],
+                        answer: 2,
+                        explanation: "A measuring cylinder has accurate volume graduations (scale markings) specifically designed to measure the volume of liquids precisely."
+                    },
+                    {
+                        level: "SEDERHANA",
+                        q: "When lighting a Bunsen burner in the science laboratory, why must the air hole be closed before turning on the gas and lighting the match?",
+                        options: [
+                            "To produce a very hot, invisible blue flame immediately",
+                            "To prevent a 'strike-back' and ensure a visible yellow luminous safety flame is produced first",
+                            "To save laboratory gas supply",
+                            "To cool down the metal collar of the Bunsen burner"
+                        ],
+                        answer: 1,
+                        explanation: "Closing the air hole prevents strike-back and produces an easily visible yellow luminous flame so everyone knows the burner is lit."
+                    },
+                    {
+                        level: "KBAT",
+                        q: "A Year 7 student wants to determine the density of an irregularly shaped stone. Which correct sequence of measurements must be carried out?",
+                        options: [
+                            "Measure its length with a ruler, then heat it over a Bunsen burner",
+                            "Measure its mass using an electronic balance, then find its volume by water displacement in a measuring cylinder",
+                            "Place it in a filter funnel, then measure its temperature with a thermometer",
+                            "Measure its volume using a metre rule, then weigh it with a spring balance in Newtons"
+                        ],
+                        answer: 1,
+                        explanation: "Density = Mass ÷ Volume. Mass is measured with a balance, while the volume of an irregular solid is accurately found using the water displacement method."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: "DESERT ADVENTURE",
+                themeTitle: "Padang Pasir Terik",
+                topic: "Cells, Classification of Living Things & Biodiversity",
+                targetDistance: 700,
+                baseSpeed: 50,
+                maxSpeed: 78,
+                spawnRate: 1.05,
+                skyColor: 0xf59e0b,
+                fogColor: 0xfde68a,
+                groundColor: 0xd97706,
+                roadColor: 0x44403c,
+                laneColor: 0xffffff,
+                accentColor: 0xf97316,
+                envType: "desert",
+                questions: [
+                    {
+                        level: "BASIC",
+                        q: "Which structure is present in a plant cell but ABSENT in an animal cell?",
+                        options: ["Nucleus", "Cytoplasm", "Cell membrane", "Cell wall and chloroplasts"],
+                        answer: 3,
+                        explanation: "Plant cells have a rigid cellulose cell wall, chloroplasts for photosynthesis, and a large central vacuole, which animal cells do not have."
+                    },
+                    {
+                        level: "SEDERHANA",
+                        q: "A scientist discovers a vertebrate in Brunei's rainforest that has dry scaly skin, lays eggs with leathery shells on land, and is cold-blooded. To which vertebrate group does it belong?",
+                        options: ["Amphibians", "Reptiles", "Mammals", "Fish"],
+                        answer: 1,
+                        explanation: "Reptiles (such as snakes, lizards, and crocodiles) are cold-blooded vertebrates with dry, scaly skin that lay leathery-shelled eggs on land."
+                    },
+                    {
+                        level: "KBAT",
+                        q: "A student observes an unknown cell under a light microscope. It has a cell wall and cytoplasm, but NO chloroplasts. Where was this cell most likely taken from?",
+                        options: [
+                            "The green leaf of a hibiscus plant",
+                            "The underground root tip of an onion plant",
+                            "The cheek lining of a human",
+                            "The blood sample of a frog"
+                        ],
+                        answer: 1,
+                        explanation: "Root cells are plant cells (so they have a cell wall), but because they grow underground without sunlight, they do not carry out photosynthesis and lack chloroplasts."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                name: "FUTURE CITY",
+                themeTitle: "Bandar Futuristik Neon",
+                topic: "Particulate Nature of Matter, Elements, Compounds & Mixtures",
+                targetDistance: 900,
+                baseSpeed: 58,
+                maxSpeed: 88,
+                spawnRate: 0.90,
+                skyColor: 0x090d16,
+                fogColor: 0x1e1b4b,
+                groundColor: 0x0f172a,
+                roadColor: 0x1e293b,
+                laneColor: 0x38bdf8,
+                accentColor: 0xc084fc,
+                envType: "city",
+                questions: [
+                    {
+                        level: "BASIC",
+                        q: "How are particles arranged and how do they move in a solid?",
+                        options: [
+                            "Far apart and moving rapidly in all directions",
+                            "Closely packed in an orderly pattern and vibrating about fixed positions",
+                            "Closely packed randomly and sliding past one another",
+                            "Completely stationary with no kinetic energy at all"
+                        ],
+                        answer: 1,
+                        explanation: "In solids, particles are tightly packed in a regular arrangement with strong forces of attraction, so they only vibrate in fixed positions."
+                    },
+                    {
+                        level: "SEDERHANA",
+                        q: "Which of the following is a COMPOUND rather than a mixture or an element?",
+                        options: ["Air", "Seawater", "Carbon dioxide (CO₂)", "Iron filings"],
+                        answer: 2,
+                        explanation: "Carbon dioxide is a compound formed when carbon and oxygen chemically combine in a fixed ratio. Air and seawater are mixtures, while iron is an element."
+                    },
+                    {
+                        level: "KBAT",
+                        q: "A student accidentally spills iron filings into a beaker containing table salt (sodium chloride). Which separation method is best to obtain pure dry salt back?",
+                        options: [
+                            "Use a magnet to remove the iron filings, dissolve the salt in water, filter, and evaporate the filtrate",
+                            "Heat the mixture strongly until the iron melts away",
+                            "Use distillation directly on the dry solid mixture",
+                            "Use paper chromatography with alcohol"
+                        ],
+                        answer: 0,
+                        explanation: "A magnet separates magnetic iron filings first. Adding water dissolves the soluble salt, filtration removes any remaining impurities, and evaporation recovers dry salt crystals."
+                    }
+                ]
+            },
+            {
+                id: 4,
+                name: "MOUNTAIN RUSH",
+                themeTitle: "Lebuh Raya Pergunungan",
+                topic: "Forces, Energy Forms & Heat Transfer",
+                targetDistance: 1100,
+                baseSpeed: 66,
+                maxSpeed: 98,
+                spawnRate: 0.78,
+                skyColor: 0x0284c7,
+                fogColor: 0xbae6fd,
+                groundColor: 0x475569,
+                roadColor: 0x27272a,
+                laneColor: 0xfacc15,
+                accentColor: 0x38bdf8,
+                envType: "mountain",
+                questions: [
+                    {
+                        level: "BASIC",
+                        q: "What is the SI unit for measuring force?",
+                        options: ["Joule (J)", "Newton (N)", "Watt (W)", "Pascal (Pa)"],
+                        answer: 1,
+                        explanation: "Force is measured in Newtons (N), named after Sir Isaac Newton, using a spring balance (newton meter)."
+                    },
+                    {
+                        level: "SEDERHANA",
+                        q: "By which main method of heat transfer does thermal energy travel from the Sun through the vacuum of space to reach Earth?",
+                        options: ["Conduction", "Convection", "Radiation", "Evaporation"],
+                        answer: 2,
+                        explanation: "Conduction and convection require a medium (particles) to transfer heat. Only radiation can transfer heat energy through a vacuum."
+                    },
+                    {
+                        level: "KBAT",
+                        q: "Why are cooking pots usually made of stainless steel or aluminium, while their handles are made of hard plastic or wood?",
+                        options: [
+                            "Metals are good thermal conductors to cook food quickly, while plastic and wood are thermal insulators to protect hands from burns",
+                            "Plastic is heavier than metal so it balances the pot",
+                            "Metals reflect heat away from the food while wood heats up quickly",
+                            "Wood and plastic are good electrical conductors"
+                        ],
+                        answer: 0,
+                        explanation: "Metals conduct heat efficiently from the stove to the food, whereas insulators like plastic and wood prevent heat from travelling to the user's hand."
+                    }
+                ]
+            },
+            {
+                id: 5,
+                name: "SPACE HIGHWAY",
+                themeTitle: "Lebuh Raya Galaksi Angkasa",
+                topic: "Acids & Alkalis, Air Pollution & Earth in Space",
+                targetDistance: 1300,
+                baseSpeed: 74,
+                maxSpeed: 110,
+                spawnRate: 0.68,
+                skyColor: 0x030014,
+                fogColor: 0x0f0728,
+                groundColor: 0x1e1b4b,
+                roadColor: 0x0f172a,
+                laneColor: 0xf472b6,
+                accentColor: 0x22d3ee,
+                envType: "space",
+                questions: [
+                    {
+                        level: "BASIC",
+                        q: "What colour change occurs when blue litmus paper is dipped into dilute hydrochloric acid?",
+                        options: [
+                            "Remains blue",
+                            "Turns red",
+                            "Turns green",
+                            "Turns yellow"
+                        ],
+                        answer: 1,
+                        explanation: "Acids have a pH less than 7 and turn blue litmus paper red, whereas alkalis turn red litmus paper blue."
+                    },
+                    {
+                        level: "SEDERHANA",
+                        q: "Which gas makes up approximately 78% of clean, dry air in Earth's atmosphere?",
+                        options: ["Oxygen", "Carbon dioxide", "Nitrogen", "Argon"],
+                        answer: 2,
+                        explanation: "Clean air consists of about 78% nitrogen, 21% oxygen, 0.03% carbon dioxide, and nearly 1% noble gases and water vapour."
+                    },
+                    {
+                        level: "KBAT",
+                        q: "A farmer tests his soil and finds it has become too acidic (pH 4.5) due to acid rain, causing crops to grow poorly. What substance should he add to neutralise the soil?",
+                        options: [
+                            "Vinegar (ethanoic acid)",
+                            "Slaked lime (calcium hydroxide)",
+                            "Distilled water only",
+                            "Lemon juice"
+                        ],
+                        answer: 1,
+                        explanation: "Slaked lime (calcium hydroxide) is an alkali (base). Adding an alkali neutralises excess acid in the soil, raising its pH to a suitable level for crops."
+                    }
+                ]
+            }
+        ];
+
+        /**
+         * =========================================================================
+         * 2. SISTEM AUDIO WEB AUDIO API (MUZIK LATAR & KESAN BUNYI SINTESIS)
+         * =========================================================================
+         */
+        class ArcadeAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.bgmInterval = null;
+                this.bgmStep = 0;
+                this.isPlayingBgm = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            setEnabled(val) {
+                this.enabled = val;
+                if (!this.enabled) {
+                    this.stopBGM();
+                } else if (gameState.status === 'PLAYING') {
+                    this.startBGM();
+                }
+            }
+
+            playTone(freq, type, duration, vol = 0.15, slideTo = null) {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                if (slideTo) {
+                    osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+                }
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            playCoin() {
+                this.playTone(987.77, 'sine', 0.08, 0.18); // B5
+                setTimeout(() => this.playTone(1318.51, 'sine', 0.18, 0.18), 65); // E6
+            }
+
+            playPowerup() {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((n, i) => {
+                    setTimeout(() => this.playTone(n, 'triangle', 0.14, 0.2), i * 55);
+                });
+            }
+
+            playNitro() {
+                this.playTone(140, 'sawtooth', 0.45, 0.18, 420);
+            }
+
+            playCrash() {
+                if (!this.enabled) return;
+                this.init();
+                // Bunyi letupan/pelanggaran menggunakan noise buffer
+                const bufferSize = this.ctx.sampleRate * 0.35;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(600, this.ctx.currentTime);
+                filter.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.35);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+            }
+
+            playCorrect() {
+                const melody = [523.25, 659.25, 783.99, 1046.50];
+                melody.forEach((f, idx) => {
+                    setTimeout(() => this.playTone(f, 'triangle', 0.18, 0.22), idx * 90);
+                });
+            }
+
+            playWrong() {
+                this.playTone(220, 'sawtooth', 0.22, 0.2, 140);
+                setTimeout(() => this.playTone(175, 'sawtooth', 0.28, 0.2, 110), 180);
+            }
+
+            playVictory() {
+                const fanfare = [523.25, 523.25, 523.25, 659.25, 783.99, 659.25, 1046.50];
+                const times = [0, 120, 240, 360, 520, 680, 840];
+                fanfare.forEach((f, i) => {
+                    setTimeout(() => this.playTone(f, 'square', 0.24, 0.16), times[i]);
+                });
+            }
+
+            playCountdown(isGo = false) {
+                this.playTone(isGo ? 880 : 440, 'triangle', isGo ? 0.35 : 0.18, 0.22);
+            }
+
+            startBGM() {
+                if (!this.enabled || this.isPlayingBgm) return;
+                this.init();
+                this.isPlayingBgm = true;
+                // Melodi arpeggio ceria & energetik gaya permainan lumba arcade
+                const bassLine = [130.81, 130.81, 164.81, 196.00, 174.61, 174.61, 196.00, 146.83];
+                const leadLine = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.00, 783.99];
+
+                this.bgmInterval = setInterval(() => {
+                    if (!this.enabled || !this.isPlayingBgm) return;
+                    const idx = this.bgmStep % bassLine.length;
+                    this.playTone(bassLine[idx], 'triangle', 0.16, 0.06);
+                    if (this.bgmStep % 2 === 0) {
+                        this.playTone(leadLine[idx], 'sine', 0.14, 0.05);
+                    }
+                    this.bgmStep++;
+                }, 210);
+            }
+
+            stopBGM() {
+                this.isPlayingBgm = false;
+                if (this.bgmInterval) {
+                    clearInterval(this.bgmInterval);
+                    this.bgmInterval = null;
+                }
+            }
+        }
+
+        const audio = new ArcadeAudio();
+
+        /**
+         * =========================================================================
+         * 3. PENGURUSAN KEADAAN & PENYIMPANAN LOCALSTORAGE
+         * =========================================================================
+         */
+        const STORAGE_KEY = 'science_drive_brunei_y7_v1';
+
+        const DEFAULT_LEADERBOARD = [
+            { name: "Cikgu Hakim", score: 4850, level: 5, coins: 95 },
+            { name: "Dayangku Aisyah", score: 3620, level: 4, coins: 72 },
+            { name: "Awangku Danish", score: 2450, level: 3, coins: 48 },
+            { name: "Nur Syafiqah", score: 1580, level: 2, coins: 31 },
+            { name: "Muhammad Irfan", score: 890, level: 1, coins: 18 }
+        ];
+
+        const savedProgress = (() => {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            return {
+                playerName: '',
+                unlockedLevel: 1,
+                highScore: 0,
+                totalCoins: 0,
+                soundEnabled: true,
+                leaderboard: DEFAULT_LEADERBOARD
+            };
+        })();
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    playerName: gameState.playerName,
+                    unlockedLevel: gameState.unlockedLevel,
+                    highScore: gameState.highScore,
+                    totalCoins: gameState.totalCoins,
+                    soundEnabled: audio.enabled,
+                    leaderboard: gameState.leaderboard
+                }));
+            } catch (e) {}
+        }
+
+        const gameState = {
+            status: 'MENU', // MENU, COUNTDOWN, PLAYING, QUIZ, LEVEL_COMPLETE, GAMEOVER, VICTORY
+            playerName: savedProgress.playerName || '',
+            leaderboard: Array.isArray(savedProgress.leaderboard) && savedProgress.leaderboard.length > 0
+                ? savedProgress.leaderboard
+                : DEFAULT_LEADERBOARD,
+            currentLevelIndex: 0,
+            unlockedLevel: savedProgress.unlockedLevel || 1,
+            highScore: savedProgress.highScore || 0,
+            totalCoins: savedProgress.totalCoins || 0,
+            // Statistik larian semasa
+            score: 0,
+            levelCoins: 0,
+            distance: 0,
+            lives: 3,
+            speed: 0,
+            // Power-ups (baki masa dalam saat)
+            hasShield: false,
+            nitroTimer: 0,
+            magnetTimer: 0,
+            invulnerableTimer: 0,
+            // Kuiz semasa
+            currentQuestionIndex: 0,
+            totalQuestionsAnswered: 0
+        };
+
+        // Fungsi merekod skor pemain ke dalam Leaderboard
+        function recordScoreToLeaderboard(scoreVal, levelReached, coinsEarned) {
+            const cleanName = (gameState.playerName || 'Pemandu Sains').trim();
+            const finalScore = Math.floor(scoreVal);
+            if (finalScore <= 0) return;
+
+            const existingIdx = gameState.leaderboard.findIndex(
+                entry => entry.name.toLowerCase() === cleanName.toLowerCase()
+            );
+
+            if (existingIdx !== -1) {
+                if (finalScore > gameState.leaderboard[existingIdx].score) {
+                    gameState.leaderboard[existingIdx].score = finalScore;
+                    gameState.leaderboard[existingIdx].level = Math.max(gameState.leaderboard[existingIdx].level, levelReached);
+                    gameState.leaderboard[existingIdx].coins = Math.max(gameState.leaderboard[existingIdx].coins || 0, coinsEarned);
+                }
+            } else {
+                gameState.leaderboard.push({
+                    name: cleanName,
+                    score: finalScore,
+                    level: levelReached,
+                    coins: coinsEarned
+                });
+            }
+
+            gameState.leaderboard.sort((a, b) => b.score - a.score);
+            gameState.leaderboard = gameState.leaderboard.slice(0, 10);
+            saveToStorage();
+        }
+
+        audio.setEnabled(savedProgress.soundEnabled !== false);
+
+        /**
+         * =========================================================================
+         * 4. ENJIN 3D THREE.JS (KERETA SPORT, JALAN RAYA, PERSEKITARAN & PARTIKEL)
+         * =========================================================================
+         */
+        const canvas = document.getElementById('game-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 450);
+
+        // Pencahayaan Utama
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+        dirLight.position.set(25, 45, 25);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        scene.add(dirLight);
+
+        // Kumpulan Objek Dunia 3D
+        const worldGroup = new THREE.Group();
+        const roadStripes = [];
+        const envObjects = [];
+        const obstacleGroup = new THREE.Group();
+        const collectibleGroup = new THREE.Group();
+        const particleGroup = new THREE.Group();
+        scene.add(worldGroup, obstacleGroup, collectibleGroup, particleGroup);
+
+        let obstacles = [];
+        let collectibles = [];
+        let particles = [];
+
+        // 3 Lorong Utama: Kiri (-3.6), Tengah (0), Kanan (3.6)
+        const LANES = [-3.6, 0, 3.6];
+        let currentLane = 1;
+        let targetCarX = 0;
+
+        // Pembinaan Kereta Sport 3D Pemain
+        const playerCar = new THREE.Group();
+        const carWheels = [];
+        let shieldBubbleMesh = null;
+        let nitroFlameLeft = null;
+        let nitroFlameRight = null;
+
+        function buildPlayerCar() {
+            // Casis Utama (Merah Sport)
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.55, roughness: 0.25 });
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.65, 4.3), bodyMat);
+            chassis.position.y = 0.65;
+            chassis.castShadow = true;
+            playerCar.add(chassis);
+
+            // Jalur Lumba Putih
+            const stripeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.67, 4.32), stripeMat);
+            stripe.position.y = 0.65;
+            playerCar.add(stripe);
+
+            // Kabin Kaca Gelap
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.1 });
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.55, 2.0), cabinMat);
+            cabin.position.set(0, 1.15, -0.2);
+            cabin.castShadow = true;
+            playerCar.add(cabin);
+
+            // Spoiler Belakang Sport
+            const wing = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.12, 0.45), bodyMat);
+            wing.position.set(0, 1.25, 1.9);
+            playerCar.add(wing);
+
+            const strutGeo = new THREE.BoxGeometry(0.12, 0.35, 0.25);
+            const strutL = new THREE.Mesh(strutGeo, cabinMat);
+            strutL.position.set(-0.7, 1.05, 1.9);
+            const strutR = new THREE.Mesh(strutGeo, cabinMat);
+            strutR.position.set(0.7, 1.05, 1.9);
+            playerCar.add(strutL, strutR);
+
+            // Lampu Belakang Bercahaya
+            const tailMat = new THREE.MeshBasicMaterial({ color: 0xff2a2a });
+            const tailL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.1), tailMat);
+            tailL.position.set(-0.65, 0.72, 2.16);
+            const tailR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.1), tailMat);
+            tailR.position.set(0.65, 0.72, 2.16);
+            playerCar.add(tailL, tailR);
+
+            // Api Ekzos Nitro
+            const flameGeo = new THREE.ConeGeometry(0.24, 1.3, 8);
+            flameGeo.rotateX(Math.PI / 2);
+            const flameMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+            nitroFlameLeft = new THREE.Mesh(flameGeo, flameMat);
+            nitroFlameLeft.position.set(-0.55, 0.5, 2.75);
+            nitroFlameLeft.visible = false;
+
+            nitroFlameRight = new THREE.Mesh(flameGeo, flameMat);
+            nitroFlameRight.position.set(0.55, 0.5, 2.75);
+            nitroFlameRight.visible = false;
+            playerCar.add(nitroFlameLeft, nitroFlameRight);
+
+            // 4 Tayar
+            const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.38, 16);
+            wheelGeo.rotateZ(Math.PI / 2);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.7 });
+            const wheelPositions = [
+                [-1.1, 0.45, -1.3],
+                [1.1, 0.45, -1.3],
+                [-1.1, 0.45, 1.35],
+                [1.1, 0.45, 1.35]
+            ];
+            wheelPositions.forEach(pos => {
+                const w = new THREE.Mesh(wheelGeo, wheelMat);
+                w.position.set(...pos);
+                carWheels.push(w);
+                playerCar.add(w);
+            });
+
+            // Gelembung Perisai (Shield Bubble)
+            const shieldGeo = new THREE.SphereGeometry(2.7, 20, 20);
+            const shieldMat = new THREE.MeshBasicMaterial({
+                color: 0x22d3ee,
+                transparent: true,
+                opacity: 0.28,
+                wireframe: true
+            });
+            shieldBubbleMesh = new THREE.Mesh(shieldGeo, shieldMat);
+            shieldBubbleMesh.position.y = 1.0;
+            shieldBubbleMesh.visible = false;
+            playerCar.add(shieldBubbleMesh);
+
+            scene.add(playerCar);
+        }
+
+        buildPlayerCar();
+
+        // Pembinaan Jalan Raya & Persekitaran Mengikut Tema Level
+        let groundMesh = null;
+        let roadMesh = null;
+
+        function setupEnvironment(levelIdx) {
+            const cfg = LEVELS_DATA[levelIdx];
+            scene.background = new THREE.Color(cfg.skyColor);
+            scene.fog = new THREE.FogExp2(cfg.fogColor, 0.0045);
+
+            // Kosongkan objek lama
+            while (worldGroup.children.length > 0) worldGroup.remove(worldGroup.children[0]);
+            while (obstacleGroup.children.length > 0) obstacleGroup.remove(obstacleGroup.children[0]);
+            while (collectibleGroup.children.length > 0) collectibleGroup.remove(collectibleGroup.children[0]);
+            roadStripes.length = 0;
+            envObjects.length = 0;
+            obstacles = [];
+            collectibles = [];
+
+            // Tanah Luas
+            const groundGeo = new THREE.PlaneGeometry(500, 500);
+            groundGeo.rotateX(-Math.PI / 2);
+            const groundMat = new THREE.MeshStandardMaterial({ color: cfg.groundColor, roughness: 0.9 });
+            groundMesh = new THREE.Mesh(groundGeo, groundMat);
+            groundMesh.position.set(0, -0.05, -150);
+            groundMesh.receiveShadow = true;
+            worldGroup.add(groundMesh);
+
+            // Permukaan Jalan Raya 3 Lorong
+            const roadGeo = new THREE.PlaneGeometry(12.2, 420);
+            roadGeo.rotateX(-Math.PI / 2);
+            const roadMat = new THREE.MeshStandardMaterial({ color: cfg.roadColor, roughness: 0.65 });
+            roadMesh = new THREE.Mesh(roadGeo, roadMat);
+            roadMesh.position.set(0, 0, -150);
+            roadMesh.receiveShadow = true;
+            worldGroup.add(roadMesh);
+
+            // Bahu Jalan Berwarna
+            const curbMat = new THREE.MeshStandardMaterial({ color: cfg.accentColor });
+            const curbGeo = new THREE.BoxGeometry(0.45, 0.18, 420);
+            const leftCurb = new THREE.Mesh(curbGeo, curbMat);
+            leftCurb.position.set(-6.2, 0.08, -150);
+            const rightCurb = new THREE.Mesh(curbGeo, curbMat);
+            rightCurb.position.set(6.2, 0.08, -150);
+            worldGroup.add(leftCurb, rightCurb);
+
+            // Garisan Putus-putus Lorong
+            const stripeGeo = new THREE.PlaneGeometry(0.24, 5.5);
+            stripeGeo.rotateX(-Math.PI / 2);
+            const stripeMat = new THREE.MeshBasicMaterial({ color: cfg.laneColor });
+
+            for (let z = 15; z > -315; z -= 15) {
+                [-1.8, 1.8].forEach(lx => {
+                    const st = new THREE.Mesh(stripeGeo, stripeMat);
+                    st.position.set(lx, 0.02, z);
+                    roadStripes.push(st);
+                    worldGroup.add(st);
+                });
+            }
+
+            // Hiasan Persekitaran Tepi Jalan (Pokok, Kaktus, Bangunan Neon, Gunung, Planet)
+            for (let z = 10; z > -320; z -= 18) {
+                [-1, 1].forEach(side => {
+                    const deco = createEnvDecoration(cfg.envType);
+                    const offsetX = side * (9.5 + Math.random() * 14);
+                    deco.position.set(offsetX, 0, z + (Math.random() - 0.5) * 6);
+                    envObjects.push(deco);
+                    worldGroup.add(deco);
+                });
+            }
+        }
+
+        function createEnvDecoration(envType) {
+            const g = new THREE.Group();
+            if (envType === 'forest') {
+                const trunk = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.35, 0.5, 3.2, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x78350f })
+                );
+                trunk.position.y = 1.6;
+                const leaves = new THREE.Mesh(
+                    new THREE.ConeGeometry(2.3, 4.8, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x16a34a })
+                );
+                leaves.position.y = 4.5;
+                g.add(trunk, leaves);
+            } else if (envType === 'desert') {
+                if (Math.random() > 0.4) {
+                    const cactusMat = new THREE.MeshStandardMaterial({ color: 0x15803d });
+                    const mainStem = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 3.6, 8), cactusMat);
+                    mainStem.position.y = 1.8;
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.35), cactusMat);
+                    arm.position.y = 2.2;
+                    g.add(mainStem, arm);
+                } else {
+                    const rock = new THREE.Mesh(
+                        new THREE.DodecahedronGeometry(1.8 + Math.random()),
+                        new THREE.MeshStandardMaterial({ color: 0xb45309 })
+                    );
+                    rock.position.y = 1.1;
+                    g.add(rock);
+                }
+            } else if (envType === 'city') {
+                const h = 8 + Math.random() * 16;
+                const bldg = new THREE.Mesh(
+                    new THREE.BoxGeometry(4.2, h, 4.2),
+                    new THREE.MeshStandardMaterial({ color: 0x1e1b4b, roughness: 0.3 })
+                );
+                bldg.position.y = h / 2;
+                const neonTrim = new THREE.Mesh(
+                    new THREE.BoxGeometry(4.3, 0.4, 4.3),
+                    new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? 0x38bdf8 : 0xe879f9 })
+                );
+                neonTrim.position.y = h - 1;
+                g.add(bldg, neonTrim);
+            } else if (envType === 'mountain') {
+                const peak = new THREE.Mesh(
+                    new THREE.ConeGeometry(4.5, 11 + Math.random() * 6, 6),
+                    new THREE.MeshStandardMaterial({ color: 0x64748b })
+                );
+                peak.position.y = 5.5;
+                const snow = new THREE.Mesh(
+                    new THREE.ConeGeometry(1.8, 4.2, 6),
+                    new THREE.MeshStandardMaterial({ color: 0xffffff })
+                );
+                snow.position.y = 9.2;
+                g.add(peak, snow);
+            } else {
+                // Space Highway
+                const planet = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.6 + Math.random() * 1.4, 16, 16),
+                    new THREE.MeshStandardMaterial({
+                        color: Math.random() > 0.5 ? 0x8b5cf6 : 0x06b6d4,
+                        emissive: 0x311042
+                    })
+                );
+                planet.position.y = 4 + Math.random() * 6;
+                g.add(planet);
+            }
+            return g;
+        }
+
+        /**
+         * =========================================================================
+         * 5. PENJANA HALANGAN, KENDERAAN LAIN, SYILING & POWER-UP
+         * =========================================================================
+         */
+        function spawnObstacleAndCollectibles(zPos) {
+            const cfg = LEVELS_DATA[gameState.currentLevelIndex];
+            const laneIndices = [0, 1, 2];
+            // Pilih 1 atau 2 lorong untuk halangan (sentiasa tinggalkan sekurang-kurangnya 1 lorong selamat)
+            const numObs = (cfg.id >= 3 && Math.random() > 0.45) ? 2 : 1;
+            const shuffled = laneIndices.sort(() => Math.random() - 0.5);
+            const obsLanes = shuffled.slice(0, numObs);
+            const freeLane = shuffled[numObs];
+
+            obsLanes.forEach(lIdx => {
+                const obs = createObstacleMesh(cfg.id);
+                obs.position.set(LANES[lIdx], 0, zPos);
+                obs.userData = {
+                    hit: false,
+                    moveDir: (cfg.id >= 2 && numObs === 1 && Math.random() > 0.6) ? (Math.random() > 0.5 ? 1 : -1) : 0
+                };
+                obstacles.push(obs);
+                obstacleGroup.add(obs);
+            });
+
+            // Jana Syiling atau Power-Up pada lorong yang selamat
+            const roll = Math.random();
+            if (roll < 0.22) {
+                const types = ['SHIELD', 'NITRO', 'MAGNET'];
+                const pType = types[Math.floor(Math.random() * types.length)];
+                const pu = createCollectibleMesh(pType);
+                pu.position.set(LANES[freeLane], 1.1, zPos);
+                pu.userData = { type: pType, collected: false };
+                collectibles.push(pu);
+                collectibleGroup.add(pu);
+            } else {
+                // Deretan 3 syiling emas
+                for (let c = 0; c < 3; c++) {
+                    const coin = createCollectibleMesh('COIN');
+                    coin.position.set(LANES[freeLane], 1.0, zPos - c * 4.5);
+                    coin.userData = { type: 'COIN', collected: false };
+                    collectibles.push(coin);
+                    collectibleGroup.add(coin);
+                }
+            }
+        }
+
+        function createObstacleMesh(levelId) {
+            const g = new THREE.Group();
+            const typeRoll = Math.random();
+
+            if (typeRoll < 0.45) {
+                // Kenderaan Trafik 3D
+                const colors = [0x3b82f6, 0xeab308, 0xa855f7, 0x10b981, 0xf97316];
+                const col = colors[Math.floor(Math.random() * colors.length)];
+                const body = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.0, 0.85, 4.0),
+                    new THREE.MeshStandardMaterial({ color: col, roughness: 0.35 })
+                );
+                body.position.y = 0.65;
+                body.castShadow = true;
+                const roof = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.6, 0.6, 2.1),
+                    new THREE.MeshStandardMaterial({ color: 0x1e293b })
+                );
+                roof.position.y = 1.3;
+                g.add(body, roof);
+            } else if (typeRoll < 0.78) {
+                // Penghadang Jalan Raya Berbelang
+                const barrier = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.5, 1.1, 0.7),
+                    new THREE.MeshStandardMaterial({ color: levelId === 5 ? 0xec4899 : 0xf97316 })
+                );
+                barrier.position.y = 0.55;
+                barrier.castShadow = true;
+                const stripe = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.54, 0.3, 0.74),
+                    new THREE.MeshBasicMaterial({ color: 0xffffff })
+                );
+                stripe.position.y = 0.65;
+                g.add(barrier, stripe);
+            } else {
+                // Kon Jalan / Batu Meteor
+                const cone = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.75, 1.5, 12),
+                    new THREE.MeshStandardMaterial({ color: levelId === 4 ? 0x94a3b8 : 0xea580c })
+                );
+                cone.position.y = 0.75;
+                cone.castShadow = true;
+                g.add(cone);
+            }
+            return g;
+        }
+
+        function createCollectibleMesh(type) {
+            if (type === 'COIN') {
+                const geo = new THREE.CylinderGeometry(0.65, 0.65, 0.22, 16);
+                geo.rotateX(Math.PI / 2);
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0xfacc15,
+                    emissive: 0xca8a04,
+                    metalness: 0.7,
+                    roughness: 0.2
+                });
+                return new THREE.Mesh(geo, mat);
+            }
+            const colorMap = {
+                SHIELD: 0x22d3ee,
+                NITRO: 0xf97316,
+                MAGNET: 0xec4899
+            };
+            const geo = new THREE.OctahedronGeometry(0.85, 0);
+            const mat = new THREE.MeshStandardMaterial({
+                color: colorMap[type],
+                emissive: colorMap[type],
+                emissiveIntensity: 0.45
+            });
+            return new THREE.Mesh(geo, mat);
+        }
+
+        function spawnParticles(pos, colorHex, count = 12) {
+            const geo = new THREE.BoxGeometry(0.24, 0.24, 0.24);
+            const mat = new THREE.MeshBasicMaterial({ color: colorHex });
+            for (let i = 0; i < count; i++) {
+                const p = new THREE.Mesh(geo, mat);
+                p.position.copy(pos);
+                p.userData = {
+                    vel: new THREE.Vector3(
+                        (Math.random() - 0.5) * 12,
+                        Math.random() * 9 + 3,
+                        (Math.random() - 0.5) * 12
+                    ),
+                    life: 0.55 + Math.random() * 0.25
+                };
+                particles.push(p);
+                particleGroup.add(p);
+            }
+        }
+
+        /**
+         * =========================================================================
+         * 6. PENGURUSAN ANTARA MUKA (UI), PEMILIHAN LEVEL & TOAST MESEJ
+         * =========================================================================
+         */
+        let toastTimeout = null;
+        function showToast(msg, borderClass = 'border-amber-400', textClass = 'text-amber-300') {
+            const el = document.getElementById('toast-message');
+            el.textContent = msg;
+            el.className = `inline-block font-arcade text-sm sm:text-lg font-bold px-5 py-2 rounded-full bg-slate-950/90 border-2 ${borderClass} ${textClass} shadow-xl transition-opacity duration-200 opacity-100`;
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                el.classList.remove('opacity-100');
+                el.classList.add('opacity-0');
+            }, 1400);
+        }
+
+        function renderLevelCards() {
+            const container = document.getElementById('level-cards-container');
+            container.innerHTML = '';
+
+            LEVELS_DATA.forEach((lvl, idx) => {
+                const isUnlocked = lvl.id <= gameState.unlockedLevel;
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border-2 flex flex-col justify-between transition ${
+                    isUnlocked
+                        ? 'bg-slate-800/90 border-sky-400/60 hover:border-amber-400 cursor-pointer'
+                        : 'bg-slate-900/70 border-slate-700 opacity-60 cursor-not-allowed'
+                }`;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-arcade text-xs font-black px-2.5 py-0.5 rounded-lg ${isUnlocked ? 'bg-sky-500 text-slate-950' : 'bg-slate-700 text-slate-300'}">
+                                LEVEL ${lvl.id}
+                            </span>
+                            <span class="text-xs font-bold text-amber-400">🎯 ${lvl.targetDistance}m</span>
+                        </div>
+                        <h3 class="font-arcade text-base sm:text-lg font-bold text-white mt-1">${lvl.name}</h3>
+                        <p class="text-xs text-slate-300 mt-0.5">Tema: ${lvl.themeTitle}</p>
+                        <p class="text-[11px] text-emerald-300 mt-1 font-semibold">🔬 ${lvl.topic}</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-700/80 flex justify-between items-center">
+                        <span class="text-xs font-bold ${isUnlocked ? 'text-emerald-400' : 'text-slate-400'}">
+                            ${isUnlocked ? '🔓 DIBUKA' : '🔒 TERKUNCI'}
+                        </span>
+                        ${isUnlocked ? '<span class="font-arcade text-xs bg-emerald-500 text-slate-950 font-black px-3 py-1 rounded-lg">MAIN ➔</span>' : ''}
+                    </div>
+                `;
+
+                if (isUnlocked) {
+                    card.addEventListener('click', () => {
+                        screens.levels.classList.add('hidden');
+                        startLevel(idx);
+                    });
+                }
+                container.appendChild(card);
+            });
+        }
+
+        const screens = {
+            menu: document.getElementById('screen-menu'),
+            levels: document.getElementById('screen-levels'),
+            leaderboard: document.getElementById('screen-leaderboard'),
+            howto: document.getElementById('screen-howto'),
+            hud: document.getElementById('screen-hud'),
+            quiz: document.getElementById('screen-quiz'),
+            complete: document.getElementById('screen-level-complete'),
+            gameover: document.getElementById('screen-gameover'),
+            victory: document.getElementById('screen-victory')
+        };
+
+        function showOnlyScreen(name) {
+            Object.keys(screens).forEach(k => {
+                if (screens[k]) screens[k].classList.add('hidden');
+            });
+            if (name && screens[name]) {
+                screens[name].classList.remove('hidden');
+            }
+        }
+
+        function updateMenuStats() {
+            document.getElementById('menu-total-coins').textContent = gameState.totalCoins;
+            document.getElementById('menu-high-score').textContent = gameState.highScore;
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput && gameState.playerName && !nameInput.value) {
+                nameInput.value = gameState.playerName;
+            }
+            const soundIcon = audio.enabled ? '🔊' : '🔇';
+            document.getElementById('sound-icon').textContent = soundIcon;
+            document.getElementById('sound-text').textContent = audio.enabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+            document.getElementById('btn-hud-sound').textContent = soundIcon;
+        }
+
+        function validatePlayerName() {
+            const input = document.getElementById('player-name-input');
+            const errEl = document.getElementById('name-error-msg');
+            const val = input.value.trim();
+
+            if (!val) {
+                errEl.classList.remove('hidden');
+                input.classList.add('border-rose-500', 'animate-shake');
+                input.focus();
+                setTimeout(() => input.classList.remove('animate-shake'), 450);
+                return false;
+            }
+
+            errEl.classList.add('hidden');
+            input.classList.remove('border-rose-500');
+            gameState.playerName = val;
+            saveToStorage();
+            return true;
+        }
+
+        function renderLeaderboard() {
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = '';
+
+            gameState.leaderboard.forEach((item, index) => {
+                const isCurrentPlayer = gameState.playerName && item.name.toLowerCase() === gameState.playerName.toLowerCase();
+                let medal = `#${index + 1}`;
+                let rankBadgeStyle = 'bg-slate-800 text-slate-300 border-slate-600';
+
+                if (index === 0) {
+                    medal = '🥇';
+                    rankBadgeStyle = 'bg-amber-400/20 text-amber-300 border-amber-400';
+                } else if (index === 1) {
+                    medal = '🥈';
+                    rankBadgeStyle = 'bg-slate-300/20 text-slate-200 border-slate-300';
+                } else if (index === 2) {
+                    medal = '🥉';
+                    rankBadgeStyle = 'bg-orange-500/20 text-orange-300 border-orange-400';
+                }
+
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border-2 ${
+                    isCurrentPlayer
+                        ? 'bg-sky-950/80 border-sky-400 shadow-md'
+                        : 'bg-slate-900/85 border-slate-800'
+                }`;
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border ${rankBadgeStyle} font-arcade font-black text-sm sm:text-base flex items-center justify-center shrink-0">
+                            ${medal}
+                        </div>
+                        <div class="truncate">
+                            <div class="font-bold text-white text-sm sm:text-base truncate flex items-center gap-2">
+                                <span>${item.name}</span>
+                                ${isCurrentPlayer ? '<span class="text-[10px] bg-sky-400 text-slate-950 font-arcade font-black px-2 py-0.5 rounded-full">ANDA</span>' : ''}
+                            </div>
+                            <div class="text-xs text-slate-400 font-semibold">
+                                Tahap: <span class="text-emerald-400">Level ${item.level}</span> • 🪙 ${item.coins || 0}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0 ml-2">
+                        <div class="font-arcade text-base sm:text-xl font-black text-amber-400">${item.score}</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">MATA</div>
+                    </div>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        // Mulakan Level
+        let spawnDistanceAccumulator = 0;
+
+        function startLevel(levelIdx) {
+            audio.init();
+            gameState.currentLevelIndex = levelIdx;
+            const cfg = LEVELS_DATA[levelIdx];
+
+            // Tetapan semula pemboleh ubah larian
+            if (levelIdx === 0 && gameState.status !== 'QUIZ') {
+                gameState.score = 0;
+            }
+            gameState.levelCoins = 0;
+            gameState.distance = 0;
+            gameState.lives = 3;
+            gameState.speed = cfg.baseSpeed;
+            gameState.hasShield = false;
+            gameState.nitroTimer = 0;
+            gameState.magnetTimer = 0;
+            gameState.invulnerableTimer = 0;
+
+            currentLane = 1;
+            targetCarX = LANES[1];
+            playerCar.position.set(0, 0, 0);
+            playerCar.rotation.set(0, 0, 0);
+            shieldBubbleMesh.visible = false;
+            nitroFlameLeft.visible = false;
+            nitroFlameRight.visible = false;
+
+            setupEnvironment(levelIdx);
+
+            // Bina halangan awal di hadapan
+            for (let z = -65; z > -240; z -= 34) {
+                spawnObstacleAndCollectibles(z);
+            }
+
+            // Kemas kini HUD
+            document.getElementById('hud-level-badge').textContent = `LEVEL ${cfg.id}`;
+            document.getElementById('hud-player-name').textContent = gameState.playerName || 'PEMANDU';
+            document.getElementById('hud-level-name').textContent = cfg.name;
+            document.getElementById('hud-target').textContent = cfg.targetDistance;
+            updateHUD();
+
+            showOnlyScreen('hud');
+            runCountdown();
+        }
+
+        function runCountdown() {
+            gameState.status = 'COUNTDOWN';
+            if (document.activeElement && document.activeElement !== document.body) {
+                document.activeElement.blur();
+            }
+            window.focus();
+            const cdEl = document.getElementById('countdown-text');
+            cdEl.classList.remove('hidden');
+
+            let count = 3;
+            cdEl.textContent = count;
+            audio.playCountdown(false);
+
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    cdEl.textContent = count;
+                    audio.playCountdown(false);
+                } else if (count === 0) {
+                    cdEl.textContent = "GO!";
+                    cdEl.classList.replace('text-amber-400', 'text-emerald-400');
+                    audio.playCountdown(true);
+                } else {
+                    clearInterval(timer);
+                    cdEl.classList.add('hidden');
+                    cdEl.classList.replace('text-emerald-400', 'text-amber-400');
+                    gameState.status = 'PLAYING';
+                    audio.startBGM();
+                }
+            }, 650);
+        }
+
+        function updateHUD() {
+            const cfg = LEVELS_DATA[gameState.currentLevelIndex];
+            document.getElementById('hud-lives').textContent = '❤️'.repeat(Math.max(0, gameState.lives)) + '🖤'.repeat(Math.max(0, 3 - gameState.lives));
+            document.getElementById('hud-coins').textContent = gameState.levelCoins;
+            document.getElementById('hud-score').textContent = Math.floor(gameState.score);
+            document.getElementById('hud-distance').textContent = Math.floor(gameState.distance);
+            document.getElementById('hud-speed').textContent = `${Math.round(gameState.speed * 2.4)} KM/J`;
+
+            const pct = Math.min(100, (gameState.distance / cfg.targetDistance) * 100);
+            document.getElementById('hud-progress-bar').style.width = `${pct}%`;
+
+            // Status Lencana Power-up
+            document.getElementById('badge-shield').classList.toggle('hidden', !gameState.hasShield);
+            document.getElementById('badge-nitro').classList.toggle('hidden', gameState.nitroTimer <= 0);
+            document.getElementById('badge-magnet').classList.toggle('hidden', gameState.magnetTimer <= 0);
+        }
+
+        /**
+         * =========================================================================
+         * 7. SISTEM SCIENCE CHALLENGE (KUIZ 3 SOALAN WAJIB DI PENGHUJUNG LEVEL)
+         * =========================================================================
+         */
+        function triggerScienceChallenge() {
+            gameState.status = 'QUIZ';
+            audio.stopBGM();
+            audio.playPowerup();
+
+            gameState.currentQuestionIndex = 0;
+            showOnlyScreen('quiz');
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const cfg = LEVELS_DATA[gameState.currentLevelIndex];
+            const qData = cfg.questions[gameState.currentQuestionIndex];
+
+            document.getElementById('quiz-progress-badge').textContent = `SOALAN ${gameState.currentQuestionIndex + 1} / 3`;
+            const diffBadge = document.getElementById('quiz-difficulty-badge');
+            diffBadge.textContent = qData.level;
+
+            if (qData.level === 'BASIC') {
+                diffBadge.className = 'bg-emerald-400 text-slate-950 font-arcade font-black text-xs sm:text-sm px-3 py-1.5 rounded-xl';
+            } else if (qData.level === 'SEDERHANA') {
+                diffBadge.className = 'bg-amber-400 text-slate-950 font-arcade font-black text-xs sm:text-sm px-3 py-1.5 rounded-xl';
+            } else {
+                diffBadge.className = 'bg-rose-500 text-white font-arcade font-black text-xs sm:text-sm px-3 py-1.5 rounded-xl';
+            }
+
+            document.getElementById('quiz-topic').textContent = cfg.topic;
+            document.getElementById('quiz-question-text').textContent = qData.q;
+
+            // Sembunyikan maklum balas & butang seterusnya
+            const fbBox = document.getElementById('quiz-feedback');
+            fbBox.classList.add('hidden');
+            document.getElementById('btn-quiz-next').classList.add('hidden');
+            document.getElementById('btn-quiz-retry').classList.add('hidden');
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            qData.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-opt-btn btn-arcade w-full text-left p-3.5 sm:p-4 rounded-2xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 text-white font-semibold text-sm sm:text-base flex items-center gap-3 shadow-md';
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-400 text-sky-300 font-arcade font-black flex items-center justify-center shrink-0">
+                        ${letters[idx]}
+                    </span>
+                    <span>${optText}</span>
+                `;
+                btn.addEventListener('click', () => handleAnswerSelection(idx, btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswerSelection(selectedIdx, clickedBtn) {
+            const cfg = LEVELS_DATA[gameState.currentLevelIndex];
+            const qData = cfg.questions[gameState.currentQuestionIndex];
+            const allBtns = document.querySelectorAll('.quiz-opt-btn');
+
+            // Nyahaktifkan semua butang selepas jawapan dipilih
+            allBtns.forEach(b => b.disabled = true);
+
+            const fbBox = document.getElementById('quiz-feedback');
+            const fbTitle = document.getElementById('quiz-feedback-title');
+            const fbDesc = document.getElementById('quiz-feedback-desc');
+            fbBox.classList.remove('hidden');
+
+            if (selectedIdx === qData.answer) {
+                // JAWAPAN BETUL
+                audio.playCorrect();
+                clickedBtn.classList.remove('bg-slate-800', 'border-slate-600');
+                clickedBtn.classList.add('bg-emerald-600', 'border-emerald-300');
+
+                gameState.score += 100;
+                gameState.totalQuestionsAnswered++;
+
+                fbBox.className = 'rounded-2xl p-4 mb-4 border-2 bg-emerald-950/85 border-emerald-400 text-emerald-100 animate-pop';
+                fbTitle.textContent = '✅ EXCELLENT! CORRECT ANSWER (+100 POINTS)';
+                fbTitle.className = 'font-arcade font-black text-sm sm:text-base text-emerald-400 mb-1';
+                fbDesc.textContent = `Science Explanation: ${qData.explanation}`;
+
+                const nextBtn = document.getElementById('btn-quiz-next');
+                nextBtn.textContent = (gameState.currentQuestionIndex < 2) ? 'NEXT QUESTION ➔' : 'COMPLETE LEVEL 🏁';
+                nextBtn.classList.remove('hidden');
+            } else {
+                // JAWAPAN SALAH (Wajib cuba semula soalan sama)
+                audio.playWrong();
+                clickedBtn.classList.remove('bg-slate-800', 'border-slate-600');
+                clickedBtn.classList.add('bg-rose-700', 'border-rose-400');
+
+                const quizCard = document.getElementById('quiz-card');
+                quizCard.classList.remove('animate-shake');
+                void quizCard.offsetWidth;
+                quizCard.classList.add('animate-shake');
+
+                fbBox.className = 'rounded-2xl p-4 mb-4 border-2 bg-rose-950/85 border-rose-500 text-rose-100';
+                fbTitle.textContent = '❌ INCORRECT! TRY AGAIN';
+                fbTitle.className = 'font-arcade font-black text-sm sm:text-base text-rose-400 mb-1';
+                fbDesc.textContent = 'Please read the Year 7 Science question carefully and select the most accurate answer to continue.';
+
+                document.getElementById('btn-quiz-retry').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('btn-quiz-retry').addEventListener('click', () => {
+            renderCurrentQuestion();
+        });
+
+        document.getElementById('btn-quiz-next').addEventListener('click', () => {
+            if (gameState.currentQuestionIndex < 2) {
+                gameState.currentQuestionIndex++;
+                renderCurrentQuestion();
+            } else {
+                completeCurrentLevel();
+            }
+        });
+
+        function completeCurrentLevel() {
+            const cfg = LEVELS_DATA[gameState.currentLevelIndex];
+            gameState.score += 500; // Bonus tamat level
+            gameState.totalCoins += gameState.levelCoins;
+
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = Math.floor(gameState.score);
+            }
+
+            // Buka level seterusnya
+            if (cfg.id < 5 && gameState.unlockedLevel <= cfg.id) {
+                gameState.unlockedLevel = cfg.id + 1;
+            }
+            recordScoreToLeaderboard(gameState.score, cfg.id, gameState.levelCoins);
+            saveToStorage();
+            audio.playVictory();
+
+            if (cfg.id === 5) {
+                // Tamat kesemua 5 Level -> Skrin Juara!
+                gameState.status = 'VICTORY';
+                document.getElementById('victory-player-subtitle').textContent = `Congratulations ${gameState.playerName}! You have conquered all 5 tracks and mastered Year 7 Science (SPN21 Brunei)!`;
+                document.getElementById('victory-score').textContent = Math.floor(gameState.score);
+                document.getElementById('victory-questions').textContent = `15 / 15`;
+                document.getElementById('victory-coins').textContent = gameState.totalCoins;
+                showOnlyScreen('victory');
+            } else {
+                gameState.status = 'LEVEL_COMPLETE';
+                document.getElementById('complete-level-subtitle').textContent = `Congratulations! You passed the Year 7 Science Challenge for Level ${cfg.id}: ${cfg.name}.`;
+                document.getElementById('complete-coins').textContent = `🪙 ${gameState.levelCoins}`;
+                document.getElementById('complete-total-score').textContent = Math.floor(gameState.score);
+                showOnlyScreen('complete');
+            }
+        }
+
+        function triggerGameOver() {
+            gameState.status = 'GAMEOVER';
+            audio.stopBGM();
+            const currentLvlNum = LEVELS_DATA[gameState.currentLevelIndex].id;
+            recordScoreToLeaderboard(gameState.score, currentLvlNum, gameState.levelCoins);
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = Math.floor(gameState.score);
+                saveToStorage();
+            }
+            document.getElementById('gameover-score').textContent = Math.floor(gameState.score);
+            showOnlyScreen('gameover');
+        }
+
+        /**
+         * =========================================================================
+         * 8. KAWALAN PAPAN KEKUNCI, SENTUHAN & BUTANG UI
+         * =========================================================================
+         */
+        let steerLeftHeld = false;
+        let steerRightHeld = false;
+        let lateralVelocity = 0;
+
+        function moveLeft() {
+            if (gameState.status !== 'PLAYING') return;
+            targetCarX = Math.max(-4.2, targetCarX - 2.6);
+        }
+
+        function moveRight() {
+            if (gameState.status !== 'PLAYING') return;
+            targetCarX = Math.min(4.2, targetCarX + 2.6);
+        }
+
+        function activateManualNitro() {
+            if (gameState.status !== 'PLAYING') return;
+            if (gameState.nitroTimer <= 0.5) {
+                gameState.nitroTimer = 2.2;
+                audio.playNitro();
+                showToast('🔥 NITRO BOOST AKTIF!', 'border-orange-400', 'text-orange-300');
+            }
+        }
+
+        let isAccelerating = false;
+        let isBraking = false;
+
+        function handleGlobalKeyDown(e) {
+            // Abaikan pintasan papan kekunci jika pemain sedang menaip nama
+            if (document.activeElement && document.activeElement.id === 'player-name-input') {
+                return;
+            }
+
+            const key = e.key;
+            const code = e.code;
+
+            // Kawalan semasa memandu atau countdown
+            if (gameState.status === 'PLAYING' || gameState.status === 'COUNTDOWN') {
+                if (key === 'ArrowLeft' || key === 'Left' || key === 'a' || key === 'A' || code === 'ArrowLeft' || code === 'KeyA') {
+                    e.preventDefault();
+                    steerLeftHeld = true;
+                } else if (key === 'ArrowRight' || key === 'Right' || key === 'd' || key === 'D' || code === 'ArrowRight' || code === 'KeyD') {
+                    e.preventDefault();
+                    steerRightHeld = true;
+                } else if (key === 'ArrowUp' || key === 'Up' || key === 'w' || key === 'W' || code === 'ArrowUp' || code === 'KeyW') {
+                    e.preventDefault();
+                    isAccelerating = true;
+                } else if (key === 'ArrowDown' || key === 'Down' || key === 's' || key === 'S' || code === 'ArrowDown' || code === 'KeyS') {
+                    e.preventDefault();
+                    isBraking = true;
+                } else if (code === 'Space' || key === ' ') {
+                    e.preventDefault();
+                    if (!e.repeat) activateManualNitro();
+                }
+                return;
+            }
+
+            // Kawalan pintasan papan kekunci semasa menjawab kuiz (1-4 atau A-D & Enter)
+            if (gameState.status === 'QUIZ') {
+                const keyMap = { '1': 0, 'a': 0, 'A': 0, '2': 1, 'b': 1, 'B': 1, '3': 2, 'c': 2, 'C': 2, '4': 3, 'd': 3, 'D': 3 };
+                if (key in keyMap) {
+                    const btns = document.querySelectorAll('.quiz-opt-btn');
+                    const targetBtn = btns[keyMap[key]];
+                    if (targetBtn && !targetBtn.disabled) {
+                        e.preventDefault();
+                        targetBtn.click();
+                    }
+                } else if (key === 'Enter' || code === 'Enter') {
+                    const nextBtn = document.getElementById('btn-quiz-next');
+                    const retryBtn = document.getElementById('btn-quiz-retry');
+                    if (nextBtn && !nextBtn.classList.contains('hidden')) {
+                        e.preventDefault();
+                        nextBtn.click();
+                    } else if (retryBtn && !retryBtn.classList.contains('hidden')) {
+                        e.preventDefault();
+                        retryBtn.click();
+                    }
+                }
+            }
+        }
+
+        function handleGlobalKeyUp(e) {
+            const key = e.key;
+            const code = e.code;
+            if (key === 'ArrowLeft' || key === 'Left' || key === 'a' || key === 'A' || code === 'ArrowLeft' || code === 'KeyA') {
+                steerLeftHeld = false;
+            }
+            if (key === 'ArrowRight' || key === 'Right' || key === 'd' || key === 'D' || code === 'ArrowRight' || code === 'KeyD') {
+                steerRightHeld = false;
+            }
+            if (key === 'ArrowUp' || key === 'Up' || key === 'w' || key === 'W' || code === 'ArrowUp' || code === 'KeyW') {
+                isAccelerating = false;
+            }
+            if (key === 'ArrowDown' || key === 'Down' || key === 's' || key === 'S' || code === 'ArrowDown' || code === 'KeyS') {
+                isBraking = false;
+            }
+        }
+
+        window.addEventListener('keydown', handleGlobalKeyDown, { passive: false });
+        window.addEventListener('keyup', handleGlobalKeyUp);
+        document.addEventListener('keydown', handleGlobalKeyDown, { passive: false });
+        document.addEventListener('keyup', handleGlobalKeyUp);
+        window.addEventListener('blur', () => {
+            steerLeftHeld = false;
+            steerRightHeld = false;
+            isAccelerating = false;
+            isBraking = false;
+        });
+
+        // Kawalan Butang Sentuhan Pada Skrin
+        const leftBtn = document.getElementById('touch-left');
+        leftBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); steerLeftHeld = true; });
+        leftBtn.addEventListener('pointerup', () => { steerLeftHeld = false; });
+        leftBtn.addEventListener('pointerleave', () => { steerLeftHeld = false; });
+
+        const rightBtn = document.getElementById('touch-right');
+        rightBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); steerRightHeld = true; });
+        rightBtn.addEventListener('pointerup', () => { steerRightHeld = false; });
+        rightBtn.addEventListener('pointerleave', () => { steerRightHeld = false; });
+
+        document.getElementById('touch-nitro').addEventListener('pointerdown', (e) => { e.preventDefault(); activateManualNitro(); });
+
+        const brakeBtn = document.getElementById('touch-brake');
+        brakeBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); isBraking = true; });
+        brakeBtn.addEventListener('pointerup', () => { isBraking = false; });
+        brakeBtn.addEventListener('pointerleave', () => { isBraking = false; });
+
+        // Event Listeners Butang Menu & Modal
+        document.getElementById('player-name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('btn-play').click();
+            }
+        });
+
+        document.getElementById('btn-play').addEventListener('click', () => {
+            if (!validatePlayerName()) return;
+            gameState.score = 0;
+            startLevel(0);
+        });
+
+        document.getElementById('btn-levels').addEventListener('click', () => {
+            if (!validatePlayerName()) return;
+            renderLevelCards();
+            screens.levels.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-levels').addEventListener('click', () => screens.levels.classList.add('hidden'));
+
+        document.getElementById('btn-leaderboard').addEventListener('click', () => {
+            renderLeaderboard();
+            screens.leaderboard.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-leaderboard').addEventListener('click', () => screens.leaderboard.classList.add('hidden'));
+
+        document.getElementById('btn-howto').addEventListener('click', () => screens.howto.classList.remove('hidden'));
+        document.getElementById('btn-close-howto').addEventListener('click', () => screens.howto.classList.add('hidden'));
+        document.getElementById('btn-howto-ok').addEventListener('click', () => {
+            screens.howto.classList.add('hidden');
+            if (validatePlayerName()) {
+                gameState.score = 0;
+                startLevel(0);
+            }
+        });
+
+        function toggleAudio() {
+            audio.setEnabled(!audio.enabled);
+            saveToStorage();
+            updateMenuStats();
+        }
+        document.getElementById('btn-sound-toggle').addEventListener('click', toggleAudio);
+        document.getElementById('btn-hud-sound').addEventListener('click', toggleAudio);
+
+        document.getElementById('btn-hud-menu').addEventListener('click', () => {
+            gameState.status = 'MENU';
+            audio.stopBGM();
+            updateMenuStats();
+            showOnlyScreen('menu');
+        });
+
+        document.getElementById('btn-next-level').addEventListener('click', () => {
+            const nextIdx = Math.min(4, gameState.currentLevelIndex + 1);
+            startLevel(nextIdx);
+        });
+
+        document.getElementById('btn-retry-level').addEventListener('click', () => {
+            startLevel(gameState.currentLevelIndex);
+        });
+
+        document.getElementById('btn-gameover-rank').addEventListener('click', () => {
+            renderLeaderboard();
+            screens.leaderboard.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-gameover-menu').addEventListener('click', () => {
+            gameState.status = 'MENU';
+            updateMenuStats();
+            showOnlyScreen('menu');
+        });
+
+        document.getElementById('btn-play-again').addEventListener('click', () => {
+            gameState.score = 0;
+            gameState.totalQuestionsAnswered = 0;
+            startLevel(0);
+        });
+
+        document.getElementById('btn-victory-rank').addEventListener('click', () => {
+            renderLeaderboard();
+            screens.leaderboard.classList.remove('hidden');
+        });
+
+        /**
+         * =========================================================================
+         * 9. GELUNG ANIMASI UTAMA (GAME LOOP & COLLISION DETECTION)
+         * =========================================================================
+         */
+        let lastTime = performance.now();
+
+        function animate(now) {
+            requestAnimationFrame(animate);
+            const dt = Math.min(0.05, (now - lastTime) / 1000);
+            lastTime = now;
+
+            const cfg = LEVELS_DATA[gameState.currentLevelIndex];
+
+            if (gameState.status === 'MENU') {
+                // Kamera berputar lembut mengelilingi kereta di skrin utama
+                const t = now * 0.0006;
+                camera.position.set(Math.sin(t) * 6.5, 3.4, Math.cos(t) * 6.5 + 1.5);
+                camera.lookAt(0, 1.0, -1);
+                carWheels.forEach(w => w.rotation.x -= dt * 4);
+                renderer.render(scene, camera);
+                return;
+            }
+
+            if (gameState.status === 'PLAYING') {
+                // Pengiraan Kelajuan & Power-up Nitro
+                let targetSpd = cfg.baseSpeed + (gameState.distance / cfg.targetDistance) * (cfg.maxSpeed - cfg.baseSpeed) * 0.5;
+                if (isAccelerating) targetSpd += 14;
+                if (isBraking) targetSpd = Math.max(24, targetSpd - 22);
+
+                if (gameState.nitroTimer > 0) {
+                    gameState.nitroTimer -= dt;
+                    targetSpd = cfg.maxSpeed + 28;
+                    nitroFlameLeft.visible = true;
+                    nitroFlameRight.visible = true;
+                    nitroFlameLeft.scale.z = 0.8 + Math.random() * 0.6;
+                    nitroFlameRight.scale.z = 0.8 + Math.random() * 0.6;
+                } else {
+                    nitroFlameLeft.visible = false;
+                    nitroFlameRight.visible = false;
+                }
+
+                if (gameState.magnetTimer > 0) gameState.magnetTimer -= dt;
+                if (gameState.invulnerableTimer > 0) {
+                    gameState.invulnerableTimer -= dt;
+                    playerCar.visible = Math.floor(now / 80) % 2 === 0;
+                } else {
+                    playerCar.visible = true;
+                }
+
+                shieldBubbleMesh.visible = gameState.hasShield;
+                if (gameState.hasShield) shieldBubbleMesh.rotation.y += dt * 2.5;
+
+                gameState.speed += (targetSpd - gameState.speed) * dt * 5;
+                const moveDist = gameState.speed * dt;
+                gameState.distance += moveDist * 0.28;
+                gameState.score += moveDist * 0.15;
+
+                // Pergerakan Kiri/Kanan Kereta Pemain yang Lancar (Smooth Analog Steering)
+                const steerInput = (steerRightHeld ? 1 : 0) - (steerLeftHeld ? 1 : 0);
+                if (steerInput !== 0) {
+                    targetCarX = Math.max(-4.3, Math.min(4.3, targetCarX + steerInput * 14.5 * dt));
+                }
+
+                // Interpolasi spring-damping yang lembut supaya kereta tidak menyentak
+                const displacement = targetCarX - playerCar.position.x;
+                const springForce = displacement * 48;
+                const dampingForce = lateralVelocity * 11;
+                lateralVelocity += (springForce - dampingForce) * dt;
+                playerCar.position.x += lateralVelocity * dt;
+                playerCar.position.x = Math.max(-4.4, Math.min(4.4, playerCar.position.x));
+
+                // Animasi condong (body roll) & sudut belok yang lembut
+                const targetRoll = -lateralVelocity * 0.024;
+                const targetYaw = -lateralVelocity * 0.018;
+                playerCar.rotation.z += (targetRoll - playerCar.rotation.z) * Math.min(1, dt * 10);
+                playerCar.rotation.y += (targetYaw - playerCar.rotation.y) * Math.min(1, dt * 10);
+
+                // Putaran Tayar
+                carWheels.forEach(w => w.rotation.x -= moveDist * 0.6);
+
+                // Kamera Third-Person Dinamik
+                const targetCamX = playerCar.position.x * 0.55;
+                const targetCamZ = gameState.nitroTimer > 0 ? 8.6 : 7.4;
+                camera.position.x += (targetCamX - camera.position.x) * dt * 6;
+                camera.position.y += (3.8 - camera.position.y) * dt * 6;
+                camera.position.z += (targetCamZ - camera.position.z) * dt * 5;
+                camera.lookAt(playerCar.position.x * 0.35, 1.1, -14);
+
+                // Gerakkan garisan jalan & objek persekitaran
+                roadStripes.forEach(st => {
+                    st.position.z += moveDist;
+                    if (st.position.z > 20) st.position.z -= 330;
+                });
+
+                envObjects.forEach(obj => {
+                    obj.position.z += moveDist;
+                    if (obj.position.z > 20) obj.position.z -= 340;
+                });
+
+                // Penjanaan halangan & syiling baharu
+                spawnDistanceAccumulator += moveDist;
+                const spawnThreshold = 34 * cfg.spawnRate;
+                if (spawnDistanceAccumulator >= spawnThreshold) {
+                    spawnDistanceAccumulator = 0;
+                    spawnObstacleAndCollectibles(-260);
+                }
+
+                // Kemas kini & Semak Perlanggaran Halangan
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    obs.position.z += moveDist;
+
+                    if (obs.userData.moveDir !== 0) {
+                        obs.position.x += obs.userData.moveDir * dt * 3.8;
+                        if (obs.position.x > 4.0) obs.userData.moveDir = -1;
+                        if (obs.position.x < -4.0) obs.userData.moveDir = 1;
+                    }
+
+                    // Semakan perlanggaran (Hitbox)
+                    if (!obs.userData.hit && Math.abs(obs.position.z - playerCar.position.z) < 2.35 && Math.abs(obs.position.x - playerCar.position.x) < 1.55) {
+                        obs.userData.hit = true;
+                        if (gameState.nitroTimer > 0) {
+                            spawnParticles(obs.position, 0xf97316, 16);
+                            obstacleGroup.remove(obs);
+                            obstacles.splice(i, 1);
+                            continue;
+                        } else if (gameState.hasShield) {
+                            gameState.hasShield = false;
+                            gameState.invulnerableTimer = 1.2;
+                            audio.playCrash();
+                            spawnParticles(obs.position, 0x22d3ee, 18);
+                            showToast('🛡️ SHIELD MENYELAMATKAN ANDA!', 'border-cyan-400', 'text-cyan-300');
+                            obstacleGroup.remove(obs);
+                            obstacles.splice(i, 1);
+                            continue;
+                        } else if (gameState.invulnerableTimer <= 0) {
+                            gameState.lives--;
+                            gameState.invulnerableTimer = 1.6;
+                            audio.playCrash();
+                            spawnParticles(playerCar.position, 0xef4444, 22);
+                            showToast('💥 AWAS! -1 NYAWA', 'border-rose-500', 'text-rose-300');
+                            obstacleGroup.remove(obs);
+                            obstacles.splice(i, 1);
+
+                            if (gameState.lives <= 0) {
+                                updateHUD();
+                                triggerGameOver();
+                                return;
+                            }
+                            continue;
+                        }
+                    }
+
+                    if (obs.position.z > 18) {
+                        obstacleGroup.remove(obs);
+                        obstacles.splice(i, 1);
+                    }
+                }
+
+                // Kemas kini & Semak Pengumpulan Syiling / Power-Up
+                for (let i = collectibles.length - 1; i >= 0; i--) {
+                    const item = collectibles[i];
+                    item.position.z += moveDist;
+                    item.rotation.y += dt * 3.5;
+
+                    // Kesan Magnet menarik syiling ke arah kereta
+                    if (item.userData.type === 'COIN' && gameState.magnetTimer > 0 && item.position.z > -45) {
+                        item.position.x += (playerCar.position.x - item.position.x) * dt * 8;
+                        item.position.z += (playerCar.position.z - item.position.z) * dt * 5;
+                    }
+
+                    if (!item.userData.collected && Math.abs(item.position.z - playerCar.position.z) < 2.2 && Math.abs(item.position.x - playerCar.position.x) < 1.75) {
+                        item.userData.collected = true;
+                        const type = item.userData.type;
+
+                        if (type === 'COIN') {
+                            gameState.levelCoins++;
+                            gameState.score += 10;
+                            audio.playCoin();
+                            spawnParticles(item.position, 0xfacc15, 8);
+                        } else if (type === 'SHIELD') {
+                            gameState.hasShield = true;
+                            audio.playPowerup();
+                            spawnParticles(item.position, 0x22d3ee, 14);
+                            showToast('🛡️ SHIELD DIPEROLEH!', 'border-cyan-400', 'text-cyan-300');
+                        } else if (type === 'NITRO') {
+                            gameState.nitroTimer = 3.5;
+                            audio.playNitro();
+                            spawnParticles(item.position, 0xf97316, 14);
+                            showToast('🔥 NITRO BOOST!', 'border-orange-400', 'text-orange-300');
+                        } else if (type === 'MAGNET') {
+                            gameState.magnetTimer = 6.5;
+                            audio.playPowerup();
+                            spawnParticles(item.position, 0xec4899, 14);
+                            showToast('🧲 MAGNET SYILING AKTIF!', 'border-pink-400', 'text-pink-300');
+                        }
+
+                        collectibleGroup.remove(item);
+                        collectibles.splice(i, 1);
+                        continue;
+                    }
+
+                    if (item.position.z > 18) {
+                        collectibleGroup.remove(item);
+                        collectibles.splice(i, 1);
+                    }
+                }
+
+                // Kemas kini Zarah (Particles)
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.userData.life -= dt;
+                    p.position.addScaledVector(p.userData.vel, dt);
+                    p.userData.vel.y -= 22 * dt;
+                    if (p.userData.life <= 0) {
+                        particleGroup.remove(p);
+                        particles.splice(i, 1);
+                    }
+                }
+
+                updateHUD();
+
+                // Semak sama ada jarak sasaran level telah dicapai
+                if (gameState.distance >= cfg.targetDistance) {
+                    gameState.distance = cfg.targetDistance;
+                    updateHUD();
+                    triggerScienceChallenge();
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Responsif apabila saiz tetingkap pelayar berubah
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Inisialisasi Permulaan
+        setupEnvironment(0);
+        updateMenuStats();
+        showOnlyScreen('menu');
+        window.onload = function () {
+            requestAnimationFrame(animate);
+        };
+        if (document.readyState === 'complete') {
+            requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>
